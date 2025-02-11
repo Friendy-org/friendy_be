@@ -36,5 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+*/.DS_Store
+
 /src/main/generated
 /src/main/resources/application-private.yml
+dump.rdb
