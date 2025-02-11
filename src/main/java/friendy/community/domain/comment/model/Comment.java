@@ -1,5 +1,8 @@
 package friendy.community.domain.comment.model;
 
+import friendy.community.domain.comment.CommentType;
+import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;
@@ -28,7 +31,7 @@ public class Comment extends BaseEntity {
     private Post post;
 
     @Column(nullable = false)
-    private String type;
+    private CommentType type;
 
     @Column(nullable = false)
     private String content;
@@ -40,4 +43,20 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer replyCount;
+
+    protected Comment(final CommentCreateRequest request, final Member member) {
+        this.member = member;
+        this.content = request.content();
+        this.type = request.type();
+        this.likeCount = 0;
+        this.replyCount = 0;
+    }
+
+    public static Comment of(final CommentCreateRequest request, final Member member) {
+        return new Comment(request, member);
+    }
+
+    public void updateComment(final CommentUpdateRequest request, final Member member) {
+        this.content = request.content();
+    }
 }
