@@ -59,7 +59,7 @@ class PostServiceTest {
 
         member = MemberFixture.memberFixture();
         memberService.signUp(new MemberSignUpRequest(
-                member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate()));
+                member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(),null));
 
         resetPostIdSequence();
     }
@@ -75,7 +75,7 @@ class PostServiceTest {
 
     private void signUpOtherUser() {
         memberService.signUp(new MemberSignUpRequest(
-                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13")));
+                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
     }
