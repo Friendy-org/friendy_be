@@ -15,7 +15,7 @@ class MemberTest {
     @DisplayName("Member.of 메서드는 요청 데이터를 바탕으로 Member 객체를 생성한다")
     void ofMethodCreatesMemberFromRequest() {
         // Given
-        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"));
+        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"),null);
         String encryptedPassword = "securePassword123!";
         String salt = "randomSalt";
 
