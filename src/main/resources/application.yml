@@ -52,3 +52,12 @@ jwt:
   refresh:
     secret: ${JWT_SECRET_KEY}
     expiration: ${JWT_REFRESH_EXPIRATION}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    s3:
+      bucket: friendybucket
