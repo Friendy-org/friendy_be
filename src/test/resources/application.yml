@@ -46,3 +46,12 @@ jwt:
   refresh:
     secret: "SpringBootJWTHelperTokenSecretKeyFreindy246!@#"
     expiration: 2592000000 # 30일
+
+cloud:
+  aws:
+    credentials:
+      access-key: test
+      secret-key: test
+    region: us-east-2
+    s3:
+      bucket: test-bucket
