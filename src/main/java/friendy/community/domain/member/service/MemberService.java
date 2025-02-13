@@ -9,9 +9,11 @@ import friendy.community.domain.member.dto.response.FindMemberResponse;
 import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.model.Member;
+import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
+import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,14 +30,19 @@ public class MemberService {
     private final JwtTokenExtractor jwtTokenExtractor;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
+    private final S3service s3service;
 
     public Long signUp(MemberSignUpRequest request) {
         validateUniqueMemberAttributes(request);
         final String salt = saltGenerator.generate();
         final String encryptedPassword = passwordEncryptor.encrypt(request.password(), salt);
-        final Member member = Member.of(request, encryptedPassword, salt);
-        memberRepository.save(member);
+        Member member = new Member(request, encryptedPassword, salt);
 
+        if (request.imageUrl() != null) {
+            MemberImage memberImage = saveProfileImage(request);
+            member.setMemberImage(memberImage);
+        }
+        memberRepository.save(member);
         return member.getId();
     }
 
@@ -83,6 +90,13 @@ public class MemberService {
 
     private boolean isCurrentUser(Member member, String email) {
         return member.getEmail().equals(email);
+    }
+
+    public MemberImage saveProfileImage(MemberSignUpRequest request) {
+        String imageUrl = s3service.moveS3Object(request.imageUrl(), "profile");
+        String s3Key = s3service.extractFilePath(imageUrl);
+        String fileType = s3service.getContentTypeFromS3(s3Key);
+        return MemberImage.of(imageUrl, s3Key ,fileType);
     }
 
 }
