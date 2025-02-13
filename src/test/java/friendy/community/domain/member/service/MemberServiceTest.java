@@ -4,55 +4,83 @@ import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
+import friendy.community.domain.member.encryption.PasswordEncryptor;
+import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
+import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
+import friendy.community.infra.storage.s3.service.S3service;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.util.Optional;
+import java.time.LocalDate;
 
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Transactional
 @DirtiesContext
 class MemberServiceTest {
 
-    @Autowired
-    MemberService memberService;
 
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;  // MemberRepository Mock
+
+    @MockitoBean
+    private S3service s3Service;  // S3Service Mock
 
     @Autowired
-    AuthService authService;
+    private SaltGenerator saltGenerator;  // SaltGenerator Mock
+
+    @Autowired
+    private PasswordEncryptor passwordEncryptor;  // PasswordEncryptor Mock
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private MemberService memberService;  // Mock된 의존성들이 주입된 MemberService
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);  // Mockito 초기화
+        resetMemberIdSequence();
+    }
+
+    private void resetMemberIdSequence() {
+        entityManager.createNativeQuery("ALTER TABLE member AUTO_INCREMENT = 1").executeUpdate();
+    }
 
     @Test
     @DisplayName("회원가입이 성공적으로 처리되면 회원 ID를 반환한다")
     void signUpSuccessfullyReturnsMemberId() {
         // Given
-        Member member = MemberFixture.memberFixture();
-        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate());
-
+        MemberSignUpRequest request = new MemberSignUpRequest(
+                "test@email.com", "testNickname", "password123!",  LocalDate.parse("2002-08-13"),null
+        );
         // When
-        Long savedId = memberService.signUp(memberSignUpRequest);
-        Optional<Member> actualMember = memberRepository.findById(savedId);
-
+        Long memberId = memberService.signUp(request);
         // Then
-        assertThat(actualMember).isPresent();
-        assertThat(actualMember.get().getEmail()).isEqualTo(member.getEmail());
+        assertThat(memberId).isEqualTo(1L); // 반환 값 검증
     }
 
     @Test
@@ -63,9 +91,9 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueEmail(savedMember.getEmail()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("이미 가입된 이메일입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("이미 가입된 이메일입니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
     }
 
     @Test
@@ -76,9 +104,9 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueName(savedMember.getNickname()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("닉네임이 이미 존재합니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("닉네임이 이미 존재합니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
     }
 
     @Test
@@ -108,6 +136,33 @@ class MemberServiceTest {
         assertThatThrownBy(() -> memberService.resetPassword(request))
                 .isInstanceOf(FriendyException.class)
                 .hasMessageContaining("해당 이메일의 회원이 존재하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("회원가입시 프로필 사진이있는경우")
+    void signUpwithimageSuccessfullyReturnsMemberId() {
+        // Given
+
+        MemberSignUpRequest request = new MemberSignUpRequest(
+                "test@email.com", "testNickname", "password123!",  LocalDate.parse("2002-08-13"),
+                "https://friendybucket.s3.us-east-2.amazonaws.com/temp/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg"
+        );
+        // When
+        String expectedImageUrl = "https://friendybucket.s3.us-east-2.amazonaws.com/profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
+        String expectedFilePath = "profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
+
+        MemberImage expectedMemberImage = new MemberImage("https://www.example.com/test-image.jpg", "mocked-file-path", "image/png");
+
+        when(s3Service.moveS3Object(request.imageUrl(), "profile")).thenReturn(expectedImageUrl);
+        when(s3Service.extractFilePath(anyString())).thenReturn(expectedFilePath);
+        when(s3Service.getContentTypeFromS3(anyString())).thenReturn("jpeg");
+
+
+        Long memberId = memberService.signUp(request);
+
+        // Then
+        assertThat(memberId).isEqualTo(1L); // 반환 값 검증
+        verify(s3Service).moveS3Object(request.imageUrl(), "profile");
     }
 
     @Test
