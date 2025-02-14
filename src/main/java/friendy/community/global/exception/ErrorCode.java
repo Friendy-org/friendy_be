@@ -22,7 +22,7 @@ public enum ErrorCode {
     INVALID_FILE(1401, HttpStatus.BAD_REQUEST),
     FILE_IO_ERROR(1402, HttpStatus.INTERNAL_SERVER_ERROR),
 
-    INTERNAL_SERVER_ERROR(2000, HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_SERVER_ERROR(1500, HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final HttpStatus httpStatus;
