@@ -139,29 +139,23 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입시 프로필 사진이있는경우")
+    @DisplayName("회원가입시 프로필이있는경우 성공하면 회원ID를 반한한다")
     void signUpwithimageSuccessfullyReturnsMemberId() {
         // Given
-
         MemberSignUpRequest request = new MemberSignUpRequest(
                 "test@email.com", "testNickname", "password123!",  LocalDate.parse("2002-08-13"),
-                "https://friendybucket.s3.us-east-2.amazonaws.com/temp/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg"
+                "https://test.s3.us-east-2.amazonaws.com/temp/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg"
         );
-        // When
-        String expectedImageUrl = "https://friendybucket.s3.us-east-2.amazonaws.com/profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
+        String expectedImageUrl = "https://test.s3.us-east-2.amazonaws.com/profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
         String expectedFilePath = "profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
-
-        MemberImage expectedMemberImage = new MemberImage("https://www.example.com/test-image.jpg", "mocked-file-path", "image/png");
 
         when(s3Service.moveS3Object(request.imageUrl(), "profile")).thenReturn(expectedImageUrl);
         when(s3Service.extractFilePath(anyString())).thenReturn(expectedFilePath);
         when(s3Service.getContentTypeFromS3(anyString())).thenReturn("jpeg");
-
-
+        // When
         Long memberId = memberService.signUp(request);
-
         // Then
-        assertThat(memberId).isEqualTo(1L); // 반환 값 검증
+        assertThat(memberId).isEqualTo(1L);
         verify(s3Service).moveS3Object(request.imageUrl(), "profile");
     }
 
@@ -233,5 +227,4 @@ class MemberServiceTest {
         assertThat(response.id()).isEqualTo(savedMember.getId());
         assertThat(response.me()).isFalse();
     }
-
 }
