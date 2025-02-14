@@ -44,7 +44,6 @@ public class S3exception {
             throw new FriendyException(ErrorCode.INVALID_FILE, "확장자가 없습니다.");
         }
 
-
         String[] allowedExtensions = {"jpg", "png", "gif", "pdf"};
         String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase(); // 확장자 추출
 
@@ -62,5 +61,4 @@ public class S3exception {
     private boolean isAllowedMimeType(String contentType) {
         return List.of("image/jpeg", "image/png", "image/gif").contains(contentType);
     }
-
 }
