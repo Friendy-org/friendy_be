@@ -41,7 +41,7 @@ public class Member extends BaseEntity {
         this.salt = salt;
     }
 
-    public void setMemberImage(MemberImage memberImage) {
+    public void updateMemberImage(MemberImage memberImage) {
         this.memberImage = memberImage;
     }
 
