@@ -38,7 +38,4 @@ public class MemberImage extends BaseEntity {
         this.s3Key = storedFileName;
         this.fileType = fileType;
     }
-
-
-
 }
