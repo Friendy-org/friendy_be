@@ -17,13 +17,15 @@ class MemberImageTest {
     @Test
     @DisplayName("updateImage 메서드는 imageUrl, s3Key, fileType을 정상적으로 변경해야 한다.")
     void updateImageUpdatesFields() {
-        // given
+        // Given
         String newImageUrl = "new-url.com/image.jpg";
         String newS3Key = "new-file-name";
         String newFileType = "image/png";
-        // when
+
+        // When
         memberImage.updateImage(newImageUrl, newS3Key, newFileType);
-        // then
+
+        // Then
         assertThat(memberImage.getImageUrl()).isEqualTo(newImageUrl);
         assertThat(memberImage.getS3Key()).isEqualTo(newS3Key);
         assertThat(memberImage.getFileType()).isEqualTo(newFileType);
