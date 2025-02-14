@@ -66,7 +66,7 @@ class S3exceptionTest {
         int MAX_FILE_SIZE = 1024 * 1024;
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                "file", "test.jpg", "image/jpeg", new byte[MAX_FILE_SIZE+1] // 파일 이름과 MIME 타입 설정
+                "file", "test.jpg", "image/jpeg", new byte[MAX_FILE_SIZE+1]
         );
 
         // When
@@ -84,13 +84,12 @@ class S3exceptionTest {
     void throwsExceptionWhenUnsupportedMimeType() {
         // Given
         MockMultipartFile multipartFile = new MockMultipartFile(
-                "file", "test.jpg", "application/zip", "test data".getBytes() // 파일 이름과 MIME 타입 설정
+                "file", "test.jpg", "application/zip", "test data".getBytes()
         );
 
         // When
         FriendyException exception = assertThrows(FriendyException.class, () -> {
-            // multipartFile을 mock으로 사용할 때 getContentType() 메서드를 호출하도록 설정
-            s3exception.validateFile(multipartFile);  // 예외가 발생해야 한다.
+            s3exception.validateFile(multipartFile);
         });
 
         // Then
