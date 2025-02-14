@@ -41,7 +41,7 @@ public class S3exception {
         }
 
         if (!fileName.contains(".")) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "확장자가 없습니다.");
+            throw new FriendyException(ErrorCode.INVALID_FILE, "지원되지 않는 파일 확장자입니다.");
         }
 
         String[] allowedExtensions = {"jpg", "png", "gif", "pdf"};

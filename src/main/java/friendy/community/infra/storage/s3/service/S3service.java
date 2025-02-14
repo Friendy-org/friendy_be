@@ -42,7 +42,7 @@ public class S3service {
         String originalFileName = multipartFile.getOriginalFilename();
 
         if (originalFileName == null) {
-            throw new FriendyException(ErrorCode.INVALID_FILE ,"파일 이름을 가져올 수 없습니다.");
+            throw new FriendyException(ErrorCode.INVALID_FILE ,"파일 이름이 없습니다.");
         }
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString();

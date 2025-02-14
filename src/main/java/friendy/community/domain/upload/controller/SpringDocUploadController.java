@@ -22,8 +22,7 @@ public interface SpringDocUploadController {
             @ErrorCase(description = "파일 이름이 없습니다.", exampleMessage = "파일 이름이 없습니다.")
     })
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/file/upload", errorCases = {
-            @ErrorCase(description = "I/O 오류 발생", exampleMessage = "I/O 오류 발생")
+            @ErrorCase(description = "S3 업로드 중 오류 발생" , exampleMessage = "S3 업로드 중 오류 발생")
     })
     String uploadMultipleFile(@RequestPart("file") MultipartFile multipartFile);
-
 }
