@@ -40,7 +40,7 @@ public class MemberService {
 
         if (request.imageUrl() != null) {
             MemberImage memberImage = saveProfileImage(request);
-            member.setMemberImage(memberImage);
+            member.updateMemberImage(memberImage);
         }
         memberRepository.save(member);
         return member.getId();
