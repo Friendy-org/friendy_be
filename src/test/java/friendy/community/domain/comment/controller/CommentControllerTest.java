@@ -31,10 +31,10 @@ public class CommentControllerTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("댓글 생성 성공 시 201 Created를 응답한다.")
+    @DisplayName("댓글 생성 성공 시 201 Created와 함께 헤더에 생성된 댓글 id를 응답한다.")
     void createCommentSuccessfullyReturns201Created() throws Exception {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("new valid comment", CommentType.COMMENT);
+        CommentCreateRequest request = new CommentCreateRequest("new valid comment", 1L, CommentType.COMMENT);
         when(commentService.saveComment(any(CommentCreateRequest.class), any(HttpServletRequest.class))).thenReturn(1L);
 
         // When & Then
@@ -50,7 +50,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 내용이 없으면 400 Bad Request 반환")
     void createCommentWithoutContentReturns400BadRequest() throws Exception {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest(null, CommentType.COMMENT);
+        CommentCreateRequest request = new CommentCreateRequest(null, 1L, CommentType.COMMENT);
 
         // When & Then
         mockMvc.perform(post("/comments/write")
@@ -64,7 +64,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 내용이 1100자 초과 시 400 Bad Request 반환")
     void createCommentWithContentExceedingMaxLengthReturns400BadRequest() throws Exception {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("a".repeat(1200), CommentType.COMMENT);
+        CommentCreateRequest request = new CommentCreateRequest("a".repeat(1200), 1L, CommentType.COMMENT);
 
         // When & Then
         mockMvc.perform(post("/comments/write")
@@ -78,7 +78,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 종류가 입력되지 않으면 400 Bad Request 반환")
     void createCommentWithoutCommentTypeReturns400BadRequest() throws Exception {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("new valid comment", null);
+        CommentCreateRequest request = new CommentCreateRequest("new valid comment", 1L, null);
 
         // When & Then
         mockMvc.perform(post("/comments/write")
