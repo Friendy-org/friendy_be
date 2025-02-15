@@ -61,10 +61,24 @@ public class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 내용이 1100자 초과 시 400 Bad Request 반환")
+    @DisplayName("댓글 내용이 1100자 초과 시 400 Bad Request 반환")
     void createCommentWithContentExceedingMaxLengthReturns400BadRequest() throws Exception {
         // Given
         CommentCreateRequest request = new CommentCreateRequest("a".repeat(1200), CommentType.COMMENT);
+
+        // When & Then
+        mockMvc.perform(post("/comments/write")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("댓글 종류가 입력되지 않으면 400 Bad Request 반환")
+    void createCommentWithoutCommentTypeReturns400BadRequest() throws Exception {
+        // Given
+        CommentCreateRequest request = new CommentCreateRequest("new valid comment", null);
 
         // When & Then
         mockMvc.perform(post("/comments/write")
