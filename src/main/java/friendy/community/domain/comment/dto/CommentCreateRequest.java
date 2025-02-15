@@ -13,6 +13,10 @@ public record CommentCreateRequest(
         @Size(max = 1100, message = "댓글은 1100자 이내로 작성해주세요.")
         String content,
 
+        @Schema(description = "댓글 대상 게시글 id", example = "1")
+        @NotNull(message = "댓글이 달릴 게시글이 명시되지 않았습니다.")
+        Long postId,
+
         @Schema(description = "댓글 종류", example = "COMMENT or REPLY")
         @NotNull(message = "댓글 종류가 입력되지 않았습니다.")
         CommentType type
