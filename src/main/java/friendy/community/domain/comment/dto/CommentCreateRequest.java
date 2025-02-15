@@ -3,6 +3,7 @@ package friendy.community.domain.comment.dto;
 import friendy.community.domain.comment.CommentType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "댓글 작성")
@@ -13,7 +14,7 @@ public record CommentCreateRequest(
         String content,
 
         @Schema(description = "댓글 종류", example = "COMMENT or REPLY")
-        @NotBlank(message = "댓글 종류가 입력되지 않았습니다.")
+        @NotNull(message = "댓글 종류가 입력되지 않았습니다.")
         CommentType type
 ) {
 }
