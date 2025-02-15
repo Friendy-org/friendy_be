@@ -30,6 +30,10 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "postId", nullable = false)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commentId", nullable = true)
+    private Comment parentComment;
+
     @Column(nullable = false)
     private CommentType type;
 
@@ -44,16 +48,26 @@ public class Comment extends BaseEntity {
     @ColumnDefault("0")
     private Integer replyCount;
 
-    protected Comment(final CommentCreateRequest request, final Member member) {
+    protected Comment(final CommentCreateRequest request, final Member member, final Post post) {
         this.member = member;
+        this.post = post;
         this.content = request.content();
         this.type = request.type();
         this.likeCount = 0;
         this.replyCount = 0;
     }
 
-    public static Comment of(final CommentCreateRequest request, final Member member) {
-        return new Comment(request, member);
+    protected Comment(final CommentCreateRequest request, final Member member, final Post post, final Comment comment) {
+        this(request, member, post);
+        this.parentComment = comment;
+    }
+
+    public static Comment of(final CommentCreateRequest request, final Member member, final Post post) {
+        return new Comment(request, member, post);
+    }
+
+    public static Comment of(final CommentCreateRequest request, final Member member, final Post post, final Comment comment) {
+        return new Comment(request, member, post, comment);
     }
 
     public void updateComment(final CommentUpdateRequest request, final Member member) {
