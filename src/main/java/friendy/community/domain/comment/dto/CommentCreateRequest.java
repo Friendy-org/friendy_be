@@ -17,7 +17,7 @@ public record CommentCreateRequest(
         @NotNull(message = "댓글이 달릴 게시글이 명시되지 않았습니다.")
         Long postId,
 
-        @Schema(description = "댓글 종류", example = "COMMENT or REPLY")
+        @Schema(description = "댓글 종류", example = "COMMENT")
         @NotNull(message = "댓글 종류가 입력되지 않았습니다.")
         CommentType type
 ) {
