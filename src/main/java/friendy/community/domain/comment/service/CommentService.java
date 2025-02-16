@@ -37,7 +37,7 @@ public class CommentService {
         return comment.getId();
     }
 
-    private Member getMemberFromRequest(HttpServletRequest httpServletRequest) {
+    private Member getMemberFromRequest(final HttpServletRequest httpServletRequest) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
         return authService.getMemberByEmail(email);
