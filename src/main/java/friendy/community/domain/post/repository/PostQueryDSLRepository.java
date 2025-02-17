@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import friendy.community.domain.member.model.QMember;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.model.QPost;
+import friendy.community.domain.post.model.QPostImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,6 +24,7 @@ public class PostQueryDSLRepository{
         return Optional.ofNullable(
                 queryFactory.selectFrom(QPost.post)
                         .leftJoin(QPost.post.member, QMember.member).fetchJoin()
+                        .leftJoin(QPost.post.images, QPostImage.postImage).fetchJoin()
                         .where(QPost.post.id.eq(postId))
                         .fetchOne()
         );
@@ -31,14 +33,17 @@ public class PostQueryDSLRepository{
     public Page<Post> findAllPosts(Pageable pageable) {
         List<Post> posts = queryFactory.selectFrom(QPost.post)
                 .leftJoin(QPost.post.member, QMember.member).fetchJoin()
+                .leftJoin(QPost.post.images, QPostImage.postImage).fetchJoin()
                 .orderBy(QPost.post.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory.select(QPost.post.count())
+        Long total = Optional.ofNullable(
+            queryFactory.select(QPost.post.count())
                 .from(QPost.post)
-                .fetchOne();
+                .fetchOne()
+        ).orElse(0L);
 
         return new PageImpl<>(posts, pageable, total);
     }
