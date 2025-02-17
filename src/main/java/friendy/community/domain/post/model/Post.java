@@ -11,6 +11,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,12 +43,20 @@ public class Post extends BaseEntity {
     @ColumnDefault("0")
     private Integer shareCount;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> images = new ArrayList<>();
+
     protected Post(final PostCreateRequest request, final Member member) {
         this.member = member;
         this.content = request.content();
         this.likeCount = 0;
         this.commentCount = 0;
         this.shareCount = 0;
+    }
+
+    public void addImage(PostImage image) {
+        images.add(image);   // Post에서 관리
+        image.assignPost(this);  // PostImage에도 반영
     }
 
     public static Post of(final PostCreateRequest request, final Member member) {
