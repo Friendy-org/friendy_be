@@ -14,6 +14,9 @@ public record PostCreateRequest(
         String content,
 
         @Schema(description = "게시글 해시태그", example = "[\"프렌디\", \"개발\", \"스터디\"]")
-        List<String> hashtags
+        List<String> hashtags,
+
+        @Schema(description = "게시글 이미지 목록", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
+        List<String> imageUrls
 ) {
 }
