@@ -10,10 +10,13 @@ import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.model.Post;
+import friendy.community.domain.post.model.PostImage;
+import friendy.community.domain.post.repository.PostImageRepository;
 import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
+import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,25 +38,34 @@ public class PostService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
     private final HashtagService hashtagService;
+    private final S3service s3service;
 
     public long savePost(final PostCreateRequest postCreateRequest, final HttpServletRequest httpServletRequest) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = Post.of(postCreateRequest, member);
-        postRepository.save(post);
 
+        if (postCreateRequest.imageUrls() != null) {
+            for (String imageUrl : postCreateRequest.imageUrls()) {
+                PostImage postImage = savePostImage(imageUrl);
+                postImage.assignPost(post);
+                post.addImage(postImage);
+            }
+        }
+
+        postRepository.save(post);
         hashtagService.saveHashtags(post, postCreateRequest.hashtags());
 
         return post.getId();
     }
 
     public long updatePost(
-            final PostUpdateRequest postUpdateRequest,
-            final HttpServletRequest httpServletRequest,
-            final Long postId
+        final PostUpdateRequest postUpdateRequest,
+        final HttpServletRequest httpServletRequest,
+        final Long postId
     ) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = validatePostExistence(postId);
-        validatePostAuthor(member,post);
+        validatePostAuthor(member, post);
 
         post.updatePost(postUpdateRequest);
         postRepository.save(post);
@@ -66,15 +78,15 @@ public class PostService {
     public void deletePost(final HttpServletRequest httpServletRequest, final Long postId) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = validatePostExistence(postId);
-        validatePostAuthor(member,post);
+        validatePostAuthor(member, post);
 
         hashtagService.deleteHashtags(postId);
         postRepository.delete(post);
     }
 
-    public FindPostResponse getPost(final Long postId){
+    public FindPostResponse getPost(final Long postId) {
         Post post = postQueryDSLRepository.findPostById(postId)
-                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
 
         return FindPostResponse.from(post);
     }
@@ -85,15 +97,15 @@ public class PostService {
 
         validatePageNumber(defaultPageable.getPageNumber(), postPage);
         List<FindPostResponse> findPostResponses = postPage.getContent().stream()
-                .map(FindPostResponse::from)
-                .toList();
+            .map(FindPostResponse::from)
+            .toList();
 
         return new FindAllPostResponse(findPostResponses, postPage.getTotalPages());
     }
 
     private Post validatePostExistence(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
     }
 
     private void validatePostAuthor(Member member, Post post) {
@@ -112,6 +124,13 @@ public class PostService {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
         return authService.getMemberByEmail(email);
+    }
+
+    private PostImage savePostImage(String requestImageUrl) {
+        String imageUrl = s3service.moveS3Object(requestImageUrl, "post");
+        String s3Key = s3service.extractFilePath(requestImageUrl);
+        String fileType = s3service.getContentTypeFromS3(s3Key);
+        return PostImage.of(imageUrl, s3Key, fileType);
     }
 
 }
