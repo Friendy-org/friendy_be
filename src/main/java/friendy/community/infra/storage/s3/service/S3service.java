@@ -1,10 +1,7 @@
 package friendy.community.infra.storage.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.*;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.exception.S3exception;
@@ -75,6 +72,14 @@ public class S3service {
             return object.getObjectMetadata().getContentType();
         } catch (Exception e) {
             throw new FriendyException(ErrorCode.INVALID_FILE, "파일타입을 가져올수 없습니다.");
+        }
+    }
+
+    public void deleteFromS3(String s3Key) {
+        try {
+            s3Client.deleteObject(new DeleteObjectRequest(bucket, s3Key));
+        }catch (AmazonS3Exception e) {
+            throw new FriendyException(ErrorCode.INTERNAL_SERVER_ERROR, "파일을 삭제하지 못햇습니다.");
         }
     }
 
