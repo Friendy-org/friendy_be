@@ -10,11 +10,11 @@ import java.util.List;
 public class PostFixture {
 
     public static Post postFixture() {
-        return createPost("This is a sample post content.", List.of("프렌디", "개발", "스터디"));
+        return createPost("This is a sample post content.", List.of("프렌디", "개발", "스터디"),null);
     }
 
-    public static Post createPost(String content, List<String> hashtags) {
+    public static Post createPost(String content, List<String> hashtags, List<String> imageUrls) {
         Member member = MemberFixture.memberFixture();
-        return Post.of(new PostCreateRequest(content, hashtags, null), member);
+        return Post.of(new PostCreateRequest(content, hashtags, imageUrls), member);
     }
 }
