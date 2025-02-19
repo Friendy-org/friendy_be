@@ -15,6 +15,6 @@ public class PostFixture {
 
     public static Post createPost(String content, List<String> hashtags) {
         Member member = MemberFixture.memberFixture();
-        return Post.of(new PostCreateRequest(content, hashtags), member);
+        return Post.of(new PostCreateRequest(content, hashtags, null), member);
     }
 }

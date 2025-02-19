@@ -48,7 +48,7 @@ class PostControllerTest {
     @DisplayName("게시글 생성 성공 시 201 Created 응답")
     void createPostSuccessfullyReturns201Created() throws Exception {
         // Given
-        PostCreateRequest request = new PostCreateRequest("this is new content", List.of("프렌디", "개발", "스터디"));
+        PostCreateRequest request = new PostCreateRequest("this is new content", List.of("프렌디", "개발", "스터디"), null);
         when(postService.savePost(any(PostCreateRequest.class), any(HttpServletRequest.class))).thenReturn(1L);
 
         // When & Then
@@ -64,7 +64,7 @@ class PostControllerTest {
     @DisplayName("게시글 내용이 없으면 400 Bad Request 반환")
     void createPostWithoutContentReturns400BadRequest() throws Exception {
         // Given
-        PostCreateRequest request = new PostCreateRequest(null, List.of("프렌디", "개발", "스터디"));
+        PostCreateRequest request = new PostCreateRequest(null, List.of("프렌디", "개발", "스터디"),null);
 
         // When & Then
         mockMvc.perform(post(BASE_URL)
@@ -78,7 +78,7 @@ class PostControllerTest {
     @DisplayName("게시글 내용이 2200자 초과 시 400 Bad Request 반환")
     void createPostWithContentExceedingMaxLengthReturns400BadRequest() throws Exception {
         // Given
-        PostCreateRequest request = new PostCreateRequest(generateLongContent(2300), List.of("프렌디", "개발", "스터디"));
+        PostCreateRequest request = new PostCreateRequest(generateLongContent(2300), List.of("프렌디", "개발", "스터디"), null);
 
         // When & Then
         mockMvc.perform(post(BASE_URL)
@@ -93,7 +93,7 @@ class PostControllerTest {
     void updatePostSuccessfullyReturns201Created() throws Exception {
         // Given
         Long postId = 1L;
-        PostUpdateRequest request = new PostUpdateRequest("this is updated content", List.of("프렌디", "개발", "스터디"));
+        PostUpdateRequest request = new PostUpdateRequest("this is updated content", List.of("프렌디", "개발", "스터디"), null);
         when(postService.updatePost(any(PostUpdateRequest.class), any(HttpServletRequest.class), anyLong())).thenReturn(1L);
 
         // When & Then
@@ -109,7 +109,7 @@ class PostControllerTest {
     void updatePostWithContentExceedingMaxLengthReturns400BadRequest() throws Exception {
         // Given
         Long postId = 1L;
-        PostUpdateRequest request = new PostUpdateRequest(generateLongContent(2300), List.of("프렌디", "개발", "스터디"));
+        PostUpdateRequest request = new PostUpdateRequest(generateLongContent(2300), List.of("프렌디", "개발", "스터디"), null);
 
         // When & Then
         mockMvc.perform(post(BASE_URL + "/{postId}", postId)
@@ -137,7 +137,7 @@ class PostControllerTest {
     void getPostSuccessfullyReturns200Ok() throws Exception {
         // Given
         Long postId = 1L;
-        FindPostResponse response = new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"));
+        FindPostResponse response = new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"),null);
         when(postService.getPost(anyLong())).thenReturn(response);
 
         // When & Then
@@ -167,8 +167,8 @@ class PostControllerTest {
     void getPostsListSuccessfullyReturns200Ok() throws Exception {
         // Given
         List<FindPostResponse> posts = List.of(
-                new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1")),
-                new FindPostResponse(2L, "Post 2", "2025-01-23T11:00:00", 20, 10, 3, new FindMemberResponse(2L, "author2"))
+                new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"),null),
+                new FindPostResponse(2L, "Post 2", "2025-01-23T11:00:00", 20, 10, 3, new FindMemberResponse(2L, "author2"),null)
         );
         when(postService.getAllPosts(any(Pageable.class)))
                 .thenReturn(new FindAllPostResponse(posts, 1));

@@ -29,7 +29,7 @@ class PostTest {
         // Given
         String content = "This is a new post content.";
         List<String> hashtags = List.of("프렌디", "개발", "스터디");
-        PostCreateRequest postCreateRequest = new PostCreateRequest(content, hashtags);
+        PostCreateRequest postCreateRequest = new PostCreateRequest(content, hashtags, null);
 
         // When
         Post post = Post.of(postCreateRequest, member);

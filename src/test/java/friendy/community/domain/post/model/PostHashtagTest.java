@@ -21,7 +21,7 @@ class PostHashtagTest {
 
     @BeforeEach
     void setUp() {
-        PostCreateRequest postCreateRequest = new PostCreateRequest("This is a new post content.", List.of("프렌디", "개발", "스터디"));
+        PostCreateRequest postCreateRequest = new PostCreateRequest("This is a new post content.", List.of("프렌디", "개발", "스터디"), null);
         post = new Post(postCreateRequest, MemberFixture.memberFixture());
         hashtag = new Hashtag("프렌디");
     }
