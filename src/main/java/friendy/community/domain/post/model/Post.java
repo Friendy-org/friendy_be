@@ -55,8 +55,8 @@ public class Post extends BaseEntity {
     }
 
     public void addImage(PostImage image) {
-        images.add(image);   // Post에서 관리
-        image.assignPost(this);  // PostImage에도 반영
+        images.add(image);
+        image.assignPost(this);
     }
 
     public static Post of(final PostCreateRequest request, final Member member) {
