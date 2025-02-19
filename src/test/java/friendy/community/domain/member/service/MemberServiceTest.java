@@ -8,7 +8,6 @@ import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
@@ -40,29 +39,29 @@ class MemberServiceTest {
 
 
     @Autowired
-    private MemberRepository memberRepository;  // MemberRepository Mock
+    private MemberRepository memberRepository;
 
     @MockitoBean
-    private S3service s3Service;  // S3Service Mock
+    private S3service s3Service;
 
     @Autowired
-    private SaltGenerator saltGenerator;  // SaltGenerator Mock
+    private SaltGenerator saltGenerator;
 
     @Autowired
-    private PasswordEncryptor passwordEncryptor;  // PasswordEncryptor Mock
+    private PasswordEncryptor passwordEncryptor;
 
     @Autowired
     private AuthService authService;
 
     @Autowired
-    private MemberService memberService;  // Mock된 의존성들이 주입된 MemberService
+    private MemberService memberService;
 
     @Autowired
     private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);  // Mockito 초기화
+        MockitoAnnotations.openMocks(this);
         resetMemberIdSequence();
     }
 
@@ -80,7 +79,7 @@ class MemberServiceTest {
         // When
         Long memberId = memberService.signUp(request);
         // Then
-        assertThat(memberId).isEqualTo(1L); // 반환 값 검증
+        assertThat(memberId).isEqualTo(1L); 
     }
 
     @Test
