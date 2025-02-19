@@ -49,7 +49,9 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/posts/{postId}", errorCases = {
             @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
             @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}")
-
+    })
+    @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/posts/{postId}", errorCases = {
+        @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<Void> updatePost(
             HttpServletRequest httpServletRequest,
@@ -69,6 +71,9 @@ public interface SpringDocPostController {
             @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
             @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}")
 
+    })
+    @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/posts/{postId}", errorCases = {
+        @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<Void> deletePost(
             HttpServletRequest httpServletRequest,
