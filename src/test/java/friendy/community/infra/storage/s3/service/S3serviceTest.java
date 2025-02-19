@@ -1,10 +1,7 @@
 package friendy.community.infra.storage.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.*;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.exception.S3exception;
@@ -21,12 +18,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +35,7 @@ import static org.mockito.Mockito.*;
 class S3serviceTest {
 
     @Autowired
-    private S3service s3service;
+    private S3service s3Service;
 
     @MockitoBean
     private AmazonS3 s3Client;
@@ -64,7 +61,7 @@ class S3serviceTest {
         when(s3Client.getUrl(anyString(), anyString())).thenReturn(new URL(tempUrl));
 
         // When
-        String actualUrl = s3service.upload(multipartFile, "test-dir");
+        String actualUrl = s3Service.upload(multipartFile, "test-dir");
 
         // Then
         assertThat(actualUrl).isEqualTo(tempUrl);
@@ -82,7 +79,7 @@ class S3serviceTest {
         when(s3Client.getUrl(anyString(), anyString())).thenReturn(new URL(expectedUrl));
 
         // When
-        String actualUrl = s3service.moveS3Object(imageUrl, newDirName);
+        String actualUrl = s3Service.moveS3Object(imageUrl, newDirName);
 
         // Then
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -96,7 +93,7 @@ class S3serviceTest {
         when(multipartFile.getOriginalFilename()).thenReturn(null);
 
         assertThrows(FriendyException.class, () -> {
-            s3service.generateStoredFileName(multipartFile,"upload");
+            s3Service.generateStoredFileName(multipartFile,"upload");
         });
     }
 
@@ -112,7 +109,7 @@ class S3serviceTest {
         when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(s3Object);
 
         // When
-        String result = s3service.getContentTypeFromS3("test");
+        String result = s3Service.getContentTypeFromS3("test");
 
         // Then
         assertThat(result).isEqualTo("image/png");
@@ -127,7 +124,7 @@ class S3serviceTest {
 
         // When & Then
         assertThrows(FriendyException.class, () -> {
-            s3service.getContentTypeFromS3("test");
+            s3Service.getContentTypeFromS3("test");
         });
     }
 
@@ -139,7 +136,7 @@ class S3serviceTest {
 
         // When & Then
         assertThrows(FriendyException.class, () -> {
-            s3service.extractFilePath(invalidUrl);
+            s3Service.extractFilePath(invalidUrl);
         });
     }
 
@@ -155,7 +152,7 @@ class S3serviceTest {
 
         // When
         FriendyException exception = assertThrows(FriendyException.class, () -> {
-            s3service.moveS3Object(testImageUrl,dirname);
+            s3Service.moveS3Object(testImageUrl,dirname);
         });
 
         // Then
@@ -176,11 +173,42 @@ class S3serviceTest {
 
         // When
         FriendyException exception = assertThrows(FriendyException.class, () -> {
-            s3service.upload(spyFile, dirName);
+            s3Service.upload(spyFile, dirName);
         });
 
         // Then
         assertEquals(ErrorCode.FILE_IO_ERROR, exception.getErrorCode());
         assertEquals("S3 업로드 중 오류 발생", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("S3파일을 삭제한다")
+    void deleteFromS3ShouldDeleteFile() {
+        // Given
+        String s3Key = "post/image.jpg";
+
+        // When
+        doNothing().when(s3Client).deleteObject(any(DeleteObjectRequest.class));
+
+        // Then
+        s3Service.deleteFromS3(s3Key);
+        verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    @DisplayName("파일 삭제 실패 시 FriendyException을 던진다")
+    void throwsFriendyExceptionWhenDeleteFromS3Fails () {
+        // Given
+        String s3Key = "post/image.jpg";
+
+        // When
+        doThrow(AmazonS3Exception.class).when(s3Client).deleteObject(any(DeleteObjectRequest.class));
+
+        // Then
+        assertThatThrownBy(() -> s3Service.deleteFromS3(s3Key))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("파일을 삭제하지 못햇습니다.");
+
+        verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
     }
 }
