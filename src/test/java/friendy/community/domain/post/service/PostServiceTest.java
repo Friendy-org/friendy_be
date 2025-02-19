@@ -14,6 +14,7 @@ import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
+import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +34,10 @@ import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCES
 import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
@@ -48,6 +54,8 @@ class PostServiceTest {
     private PostRepository postRepository;
     @Autowired
     private EntityManager entityManager;
+    @MockitoBean
+    private S3service s3Service;
 
     private Member member;
     private MockHttpServletRequest httpServletRequest;
@@ -62,6 +70,18 @@ class PostServiceTest {
                 member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(),null));
 
         resetPostIdSequence();
+        setupS3ServiceMock();
+    }
+    private void setupS3ServiceMock() {
+        String mockedImageUrl = "https://s3.us-east-1.amazonaws.com/post/image.jpg";
+        String mockedS3Key = "post/image.jpg";
+        String mockedFileType = "image/jpeg";
+
+        when(s3Service.moveS3Object(anyString(), eq("post")))
+            .thenReturn(mockedImageUrl)
+            .thenReturn("https://example.com/test.jpg");
+        when(s3Service.extractFilePath(anyString())).thenReturn(mockedS3Key);
+        when(s3Service.getContentTypeFromS3(anyString())).thenReturn(mockedFileType);
     }
 
     private void resetPostIdSequence() {
@@ -70,7 +90,7 @@ class PostServiceTest {
 
     private Long createPost() {
         Post post = PostFixture.postFixture();
-        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"),null), httpServletRequest);
+        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null) , httpServletRequest);
     }
 
     private void signUpOtherUser() {
@@ -154,8 +174,11 @@ class PostServiceTest {
     @DisplayName("게시글 삭제 성공")
     void deletePostSuccessfullyDeletesPost() {
         // Given
-        createPost();
+        postService.savePost(new PostCreateRequest("content",
+            List.of("프렌디", "개발", "스터디"),
+            List.of("https://example.com/image1.jpg")) , httpServletRequest);
 
+        doNothing().when(s3Service).deleteFromS3(anyString());
         // When
         postService.deletePost(httpServletRequest, 1L);
 
@@ -236,5 +259,43 @@ class PostServiceTest {
                 .isInstanceOf(FriendyException.class)
                 .hasMessageContaining("요청한 페이지가 존재하지 않습니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("게시글 생성 성공 시 게시글 ID 반환(이미지 포함)")
+    void createPostWithImageReturnsPostId() {
+        // Given
+        PostCreateRequest request = new PostCreateRequest(
+            "프렌디 게시글 내용입니다.",
+            List.of("프렌디", "개발", "스터디"),
+            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg")
+        );
+
+        // When
+        Long postId = postService.savePost(request,httpServletRequest);
+
+        // Then
+        assertThat(postId).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("게시글 수정 성공 시 게시글 ID 반환(이미지포함)")
+    void updatePostWithImageReturnsPostId () {
+        // Given
+        postService.savePost(new PostCreateRequest("content",
+            List.of("프렌디", "개발", "스터디"),
+            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg")) , httpServletRequest);
+
+        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"),
+            List.of("https://example.com/image1.jpg", "https://example.com/image3.jpg","https://s3.us-east-1.amazonaws.com/post/image.jpg"));
+
+        // When
+        Long postId = postService.updatePost(request, httpServletRequest, 1L);
+        Post updatedPost = postRepository.findById(1L)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
+
+        // Then
+        assertThat(postId).isEqualTo(1L);
+        assertThat(updatedPost.getContent()).isEqualTo("Updated content");
     }
 }
