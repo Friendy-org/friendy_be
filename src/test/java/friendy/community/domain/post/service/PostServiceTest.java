@@ -70,7 +70,7 @@ class PostServiceTest {
 
     private Long createPost() {
         Post post = PostFixture.postFixture();
-        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디")), httpServletRequest);
+        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"),null), httpServletRequest);
     }
 
     private void signUpOtherUser() {
@@ -108,7 +108,7 @@ class PostServiceTest {
     void updatePostSuccessfullyReturnsPostId() {
         // Given
         createPost();
-        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"));
+        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"),null);
 
         // When
         Long postId = postService.updatePost(request, httpServletRequest, 1L);
@@ -124,7 +124,7 @@ class PostServiceTest {
     @DisplayName("존재하지 않는 게시글 수정 시 예외 발생")
     void throwsExceptionWhenPostNotFoundOnUpdate() {
         // Given
-        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"));
+        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"),null);
 
         // When & Then
         assertThatThrownBy(() -> postService.updatePost(request, httpServletRequest, 999L))
@@ -144,7 +144,7 @@ class PostServiceTest {
 
         // Then
         assertThatThrownBy(() -> postService.updatePost(
-                new PostUpdateRequest("Updated content", List.of("업데이트")), httpServletRequest, 1L))
+                new PostUpdateRequest("Updated content", List.of("업데이트"), null), httpServletRequest, 1L), null)
                 .isInstanceOf(FriendyException.class)
                 .hasMessageContaining("게시글은 작성자 본인만 관리할 수 있습니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN_ACCESS);
