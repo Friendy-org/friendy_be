@@ -4,6 +4,7 @@ import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.member.model.Member;
@@ -28,16 +29,24 @@ public class CommentService {
 
     private final PostRepository postRepository;
 
-    public long saveComment(final CommentCreateRequest commentCreateRequest, final HttpServletRequest httpServletRequest) {
+    public void saveComment(final CommentCreateRequest commentCreateRequest, final HttpServletRequest httpServletRequest) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = getPostByPostId(commentCreateRequest.postId());
         final Comment comment = Comment.of(commentCreateRequest, member, post);
-        commentRepository.save(comment);
 
-        return comment.getId();
+        commentRepository.save(comment);
     }
 
-    private Comment findCommentByCommentId(Long commentId) {
+    public void saveReply(final ReplyCreateRequest replyCreateRequest, final HttpServletRequest httpServletRequest) {
+        final Member member = getMemberFromRequest(httpServletRequest);
+        final Post post = getPostByPostId(replyCreateRequest.postId());
+        final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
+        final Comment reply = Comment.of(replyCreateRequest, member, post, parentComment);
+
+        commentRepository.save(reply);
+    }
+
+    private Comment getCommentByCommentId(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글입니다."));
     }

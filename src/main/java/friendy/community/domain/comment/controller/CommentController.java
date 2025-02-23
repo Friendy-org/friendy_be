@@ -1,6 +1,7 @@
 package friendy.community.domain.comment.controller;
 
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -20,12 +21,21 @@ public class CommentController implements SpringDocCommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("/write")
+    @PostMapping()
     public ResponseEntity<Void> createComment(
             HttpServletRequest httpServletRequest,
             @Valid @RequestBody CommentCreateRequest commentRequest
     ) {
-        Long commentId = commentService.saveComment(commentRequest, httpServletRequest);
-        return ResponseEntity.created(URI.create("/comments/" + commentId)).build();
+        commentService.saveComment(commentRequest, httpServletRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reply")
+    public ResponseEntity<Void> createReply(
+            HttpServletRequest httpServletRequest,
+            @Valid @RequestBody ReplyCreateRequest replyRequest
+    ) {
+        commentService.saveReply(replyRequest, httpServletRequest);
+        return ResponseEntity.ok().build();
     }
 }

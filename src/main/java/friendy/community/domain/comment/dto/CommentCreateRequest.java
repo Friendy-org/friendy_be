@@ -1,6 +1,5 @@
 package friendy.community.domain.comment.dto;
 
-import friendy.community.domain.comment.CommentType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,10 +14,6 @@ public record CommentCreateRequest(
 
         @Schema(description = "댓글 대상 게시글 id", example = "1")
         @NotNull(message = "댓글이 달릴 게시글이 명시되지 않았습니다.")
-        Long postId,
-
-        @Schema(description = "댓글 종류", example = "COMMENT")
-        @NotNull(message = "댓글 종류가 입력되지 않았습니다.")
-        CommentType type
+        Long postId
 ) {
 }
