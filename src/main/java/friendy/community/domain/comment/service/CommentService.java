@@ -43,6 +43,7 @@ public class CommentService {
         final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
         final Comment reply = Comment.of(replyCreateRequest, member, post, parentComment);
 
+        parentComment.updateReplyCount(parentComment.getReplyCount() + 1);
         commentRepository.save(reply);
     }
 
