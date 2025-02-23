@@ -44,6 +44,7 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer likeCount;
+
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer replyCount;
@@ -75,7 +76,11 @@ public class Comment extends BaseEntity {
         return new Comment(request, member, post, comment);
     }
 
-    public void updateComment(final CommentUpdateRequest request, final Member member) {
+    public void updateReplyCount(final Integer replyCount) {
+        this.replyCount = replyCount;
+    }
+
+    public void updateContent(final CommentUpdateRequest request, final Member member) {
         this.content = request.content();
     }
 }
