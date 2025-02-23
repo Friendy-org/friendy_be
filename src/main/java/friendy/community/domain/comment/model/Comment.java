@@ -3,6 +3,7 @@ package friendy.community.domain.comment.model;
 import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;
@@ -43,22 +44,26 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer likeCount;
-
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer replyCount;
 
-    protected Comment(final CommentCreateRequest request, final Member member, final Post post) {
+    private Comment(final Member member, final Post post, final CommentType type, final String content) {
         this.member = member;
         this.post = post;
-        this.content = request.content();
-        this.type = request.type();
+        this.type = type;
+        this.content = content;
         this.likeCount = 0;
         this.replyCount = 0;
     }
 
-    protected Comment(final CommentCreateRequest request, final Member member, final Post post, final Comment comment) {
-        this(request, member, post);
+    protected Comment(final CommentCreateRequest request, final Member member, final Post post) {
+        this(member, post, CommentType.COMMENT, request.content());
+        this.parentComment = null;
+    }
+
+    protected Comment(final ReplyCreateRequest request, final Member member, final Post post, final Comment comment) {
+        this(member, post, CommentType.REPLY, request.content());
         this.parentComment = comment;
     }
 
@@ -66,7 +71,7 @@ public class Comment extends BaseEntity {
         return new Comment(request, member, post);
     }
 
-    public static Comment of(final CommentCreateRequest request, final Member member, final Post post, final Comment comment) {
+    public static Comment of(final ReplyCreateRequest request, final Member member, final Post post, final Comment comment) {
         return new Comment(request, member, post, comment);
     }
 
