@@ -37,6 +37,11 @@ public class CommentService {
         return comment.getId();
     }
 
+    private Comment findCommentByCommentId(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글입니다."));
+    }
+
     private Member getMemberFromRequest(final HttpServletRequest httpServletRequest) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
