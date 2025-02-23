@@ -1,6 +1,10 @@
 package friendy.community.domain.comment.service;
 
+import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
@@ -25,10 +29,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static friendy.community.domain.comment.CommentType.*;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
-import static org.mockito.ArgumentMatchers.isNotNull;
 
 @SpringBootTest
 @Transactional
@@ -37,6 +39,8 @@ public class CommentServiceTest {
 
     @Autowired
     private CommentService commentService;
+    @Autowired
+    private CommentRepository commentRepository;
     @Autowired
     private MemberService memberService;
     @Autowired
@@ -53,7 +57,7 @@ public class CommentServiceTest {
 
         member = MemberFixture.memberFixture();
         memberService.signUp(new MemberSignUpRequest(
-                member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate()));
+                member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
 
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
@@ -70,43 +74,62 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 생성 성공 시 댓글 ID를 반환한다.")
+    @DisplayName("댓글 생성에 성공하면 데이터베이스에 댓글이 저장된다.")
     void createCommentSuccessfullyReturnsCommentId() {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("new valid contents", 1L, COMMENT);
+        CommentCreateRequest request = new CommentCreateRequest("new valid comment contents", 1L);
 
         // When
-        Long commentId = commentService.saveComment(request, httpServletRequest);
+        commentService.saveComment(request, httpServletRequest);
 
         // Then
-        assertThat(commentId).isInstanceOf(Long.class);
-        assertThat(commentId).isGreaterThan(0L);
+        List<Comment> savedComment = commentRepository.findAll();
+        assertThat(savedComment.size()).isEqualTo(1);
+        assertThat(savedComment).extracting(Comment::getContent).contains("new valid comment contents");
     }
 
     @Test
-    @DisplayName("답글 생성 성공 시 답글 ID를 반환한다.")
+    @DisplayName("답글 생성에 성공하면 데이터베이스에 답글이 저장된다.")
     void createReplySuccesfullyReturnsReplyId() {
+        CommentCreateRequest commentCreateRequest = new CommentCreateRequest("this is parent comment", 1L);
+        commentService.saveComment(commentCreateRequest, httpServletRequest);
+
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("new valid contents", 1L, REPLY);
+        ReplyCreateRequest request = new ReplyCreateRequest("new valid reply contents", 1L, 1L);
 
         // When
-        Long replyId = commentService.saveComment(request, httpServletRequest);
+        commentService.saveReply(request, httpServletRequest);
 
         // Then
-        assertThat(replyId).isInstanceOf(Long.class);
-        assertThat(replyId).isGreaterThan(0L);
+        List<Comment> savedComments = commentRepository.findAll();
+        assertThat(savedComments.size()).isEqualTo(2);
+        assertThat(savedComments).extracting(Comment::getType).contains(REPLY);
+        assertThat(savedComments).extracting(Comment::getContent).contains("new valid reply contents");
     }
 
     @Test
     @DisplayName("댓글 작성 대상 게시글이 존재하지 않는 경우 404 Not Found 예외를 발생한다.")
     void createCommentWithNonExistPostThrows404NotFound() {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("contents with non-exist post", 2025L, COMMENT);
+        CommentCreateRequest request = new CommentCreateRequest("contents with non-exist post", 2025L);
 
         // When & Then
         assertThatThrownBy(() -> commentService.saveComment(request, httpServletRequest))
                 .isInstanceOf(FriendyException.class)
                 .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("답글 작성 대상 댓글이 존재하지 않는 경우 404 Not Found 예외를 발생한다.")
+    void createReplyWithNonExistCommentThrows404NotFound() {
+        // Given
+        ReplyCreateRequest request = new ReplyCreateRequest("contents with non-exist comment", 1L, 2025L);
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.saveReply(request, httpServletRequest))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("존재하지 않는 댓글입니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 }

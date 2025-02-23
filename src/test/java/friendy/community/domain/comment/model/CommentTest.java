@@ -2,6 +2,7 @@ package friendy.community.domain.comment.model;
 
 import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.fixture.CommentFixture;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
@@ -33,8 +34,7 @@ public class CommentTest {
     void ofMethodCreatesCommentFromCommentRequest() {
         // Given
         String content = "This is a new comment content.";
-        CommentType type = CommentType.COMMENT;
-        CommentCreateRequest commentCreateRequest = new CommentCreateRequest(content, post.getId(), type);
+        CommentCreateRequest commentCreateRequest = new CommentCreateRequest(content, post.getId());
 
         // When
         Comment comment = Comment.of(commentCreateRequest, member, post);
@@ -45,7 +45,7 @@ public class CommentTest {
         assertEquals(content, comment.getContent());
         assertEquals(member, comment.getMember());
         assertEquals(post, comment.getPost());
-        assertEquals(type, comment.getType());
+        assertEquals(CommentType.COMMENT, comment.getType());
     }
 
     @Test
@@ -53,11 +53,10 @@ public class CommentTest {
     void ofMethodCreatesCommentFromReplyRequest() {
         // Given
         String content = "This is a new reply content.";
-        CommentType type = CommentType.REPLY;
-        CommentCreateRequest commentCreateRequest = new CommentCreateRequest(content, post.getId(), type);
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest(content, post.getId(), comment.getId());
 
         // When
-        Comment reply = Comment.of(commentCreateRequest, member, post, comment);
+        Comment reply = Comment.of(replyCreateRequest, member, post, comment);
 
         // Then
         assertNotNull(reply);
@@ -65,7 +64,7 @@ public class CommentTest {
         assertEquals(comment, reply.getParentComment());
         assertEquals(member, reply.getMember());
         assertEquals(post, reply.getPost());
-        assertEquals(type, reply.getType());
+        assertEquals(CommentType.REPLY, reply.getType());
     }
 
 }
