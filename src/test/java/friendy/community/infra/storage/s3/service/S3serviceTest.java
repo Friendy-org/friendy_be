@@ -211,4 +211,31 @@ class S3serviceTest {
 
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
     }
+
+    @Test
+    @DisplayName("S3 URL에서 객체 키를 정상적으로 추출한다")
+    void extractS3KeySuccess() {
+        // Given
+        String imageUrl = "https://test.s3.us-east-2.amazonaws.com/test/1da368de-8ad8-4c0a-bd12-d51ad6c4e937.png";
+
+        // When
+        String s3Key = s3Service.extractS3Key(imageUrl);
+
+        // Then
+        assertThat(s3Key).isEqualTo("test/1da368de-8ad8-4c0a-bd12-d51ad6c4e937.png");
+    }
+
+    @Test
+    @DisplayName("잘못된 URL 형식일 경우 예외가 발생한다")
+    void extractS3KeyInvalidUrl() {
+        // Given
+        String invalidUrl = "invalid-url";
+
+        // When & Then
+        assertThatThrownBy(() -> s3Service.extractS3Key(invalidUrl))
+            .isInstanceOf(FriendyException.class)
+            .hasMessage("유효한 URL 형식이어야 합니다.")
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.INVALID_FILE);
+    }
 }
