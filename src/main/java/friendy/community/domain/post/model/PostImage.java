@@ -20,12 +20,6 @@ public class PostImage extends BaseEntity {
     @Column(nullable = false)
     private String imageUrl;
 
-    @Column(nullable = false)
-    private String s3Key;
-
-    @Column(nullable = false)
-    private String fileType;
-
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
@@ -33,15 +27,13 @@ public class PostImage extends BaseEntity {
     @Column(nullable = false)
     private int imageOrder;
 
-    public PostImage(String imageUrl, String s3Key, String fileType, int imageOrder) {
+    public PostImage(String imageUrl, int imageOrder) {
         this.imageUrl = imageUrl;
-        this.s3Key = s3Key;
-        this.fileType = fileType;
         this.imageOrder = imageOrder;
     }
 
-    public static PostImage of(String imageUrl, String storedFileName, String fileType, int imageOrder) {
-        return new PostImage(imageUrl, storedFileName, fileType, imageOrder);
+    public static PostImage of(String imageUrl, int imageOrder) {
+        return new PostImage(imageUrl, imageOrder);
     }
 
     public void assignPost(Post post) { this.post = post; }
