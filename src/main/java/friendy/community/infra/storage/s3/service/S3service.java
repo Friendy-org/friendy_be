@@ -83,6 +83,16 @@ public class S3service {
         }
     }
 
+    public String extractS3Key(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            String path = url.getPath();
+            return path.substring(1);
+        } catch (MalformedURLException e) {
+            throw new FriendyException(ErrorCode.INVALID_FILE, "유효한 URL 형식이어야 합니다.");
+        }
+    }
+
     private String putS3(MultipartFile multipartFile, String uuidFileName) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(multipartFile.getSize());
