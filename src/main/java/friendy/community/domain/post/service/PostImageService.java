@@ -42,7 +42,8 @@ class PostImageService {
     public void deleteImagesForPost(Post post) {
         List<PostImage> imagesToDelete = postImageRepository.findByPostIdOrderByImageOrderAsc(post.getId());
         for (PostImage image : imagesToDelete) {
-            s3service.deleteFromS3(image.getS3Key());
+            String s3Key = s3service.extractS3Key(image.getImageUrl());
+            s3service.deleteFromS3(s3Key);
             postImageRepository.delete(image);
         }
     }
@@ -71,7 +72,8 @@ class PostImageService {
             .toList();
 
         for (PostImage imageToRemove : imagesToRemove) {
-            s3service.deleteFromS3(imageToRemove.getS3Key());
+            String s3Key = s3service.extractS3Key(imageToRemove.getImageUrl());
+            s3service.deleteFromS3(s3Key);
             postImageRepository.delete(imageToRemove);
         }
     }
@@ -84,8 +86,6 @@ class PostImageService {
 
     private PostImage savePostImage(String requestImageUrl, int imageOrder) {
         String imageUrl = s3service.moveS3Object(requestImageUrl, "post");
-        String s3Key = s3service.extractFilePath(imageUrl);
-        String fileType = s3service.getContentTypeFromS3(s3Key);
-        return PostImage.of(imageUrl, s3Key, fileType, imageOrder);
+        return PostImage.of(imageUrl, imageOrder);
     }
 }
