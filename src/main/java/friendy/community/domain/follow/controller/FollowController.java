@@ -1,13 +1,11 @@
 package friendy.community.domain.follow.controller;
 
+import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.service.FollowService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,5 +20,14 @@ public class FollowController implements SpringDocFollowController{
     ) {
         followService.follow(httpServletRequest, targetId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{memberId}/following")
+    public ResponseEntity<FollowListResponse> getFollowingMembers(
+        @PathVariable Long memberId,
+        @RequestParam(required = false) Long cursor
+    ) {
+        FollowListResponse response = followService.getFollowingMembers(memberId, cursor, 10);
+        return ResponseEntity.ok(response); // ResponseEntity로 감싸서 반환
     }
 }
