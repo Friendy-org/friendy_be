@@ -3,7 +3,9 @@ package friendy.community.domain.follow.service;
 import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.model.Follow;
+import friendy.community.domain.follow.repository.FollowQueryDSLRepository;
 import friendy.community.domain.follow.repository.FollowRepository;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
@@ -24,6 +26,7 @@ public class FollowService {
     private final AuthService authService;
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
+    private final FollowQueryDSLRepository followQueryDSLRepository;
 
     public void follow(final HttpServletRequest httpServletRequest, final Long targetId) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
@@ -35,5 +38,9 @@ public class FollowService {
 
         Follow follow = Follow.of(follower,following);
         followRepository.save(follow);
+    }
+
+    public FollowListResponse getFollowingMembers(Long memberId, Long cursor, int pageSize) {
+        return followQueryDSLRepository.findFollowMembers(memberId, cursor, pageSize);
     }
 }
