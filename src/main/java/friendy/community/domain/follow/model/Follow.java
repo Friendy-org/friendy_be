@@ -1,5 +1,6 @@
 package friendy.community.domain.follow.model;
 
+import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.model.Member;
 import jakarta.persistence.*;
@@ -7,7 +8,6 @@ import lombok.*;
 
 
 @Entity
-@Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(
@@ -18,7 +18,7 @@ import lombok.*;
         @Index(name = "idx_following", columnList = "following_id")
     }
 )
-public class Follow {
+public class Follow extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
