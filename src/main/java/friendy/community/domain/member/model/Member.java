@@ -32,7 +32,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private LocalDate birthDate;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "member_image_id")
     private MemberImage memberImage;
 
