@@ -16,18 +16,36 @@ public class FollowController implements SpringDocFollowController{
     @PostMapping("/{targetId}")
     public ResponseEntity<Void> follow(
         HttpServletRequest httpServletRequest,
-        @PathVariable Long targetId
+        @PathVariable final Long targetId
     ) {
         followService.follow(httpServletRequest, targetId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{memberId}/following")
+    @DeleteMapping("/{targetId}")
+    public ResponseEntity<Void> unfollow(
+        HttpServletRequest httpServletRequest,
+        @PathVariable Long targetId
+    ) {
+        followService.unfollow(httpServletRequest, targetId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{targetId}/following")
     public ResponseEntity<FollowListResponse> getFollowingMembers(
-        @PathVariable Long memberId,
+        @PathVariable final Long targetId,
         @RequestParam(required = false) Long cursor
     ) {
-        FollowListResponse response = followService.getFollowingMembers(memberId, cursor, 10);
-        return ResponseEntity.ok(response); // ResponseEntity로 감싸서 반환
+        FollowListResponse response = followService.getFollowingMembers(targetId, cursor, 10);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{targetId}/followers")
+    public ResponseEntity<FollowListResponse> getFollowerMembers(
+        @PathVariable final Long targetId,
+        @RequestParam(required = false) Long cursor
+    ) {
+        FollowListResponse response = followService.getFollowerMembers(targetId, cursor, 10);
+        return ResponseEntity.ok(response);
     }
 }
