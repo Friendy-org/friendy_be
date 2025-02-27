@@ -34,9 +34,33 @@ public class FollowQueryDSLRepository {
                 follow.follower.id.eq(memberId),
                 cursor != null ? follow.id.lt(cursor) : null
             )
-            .orderBy(follow.id.desc())  // `_super` 없이 바로 사용
+            .orderBy(follow.createdDate.desc())
             .limit(pageSize + 1)
             .fetch();
+        Long nextCursor = members.size() > pageSize ? members.remove(pageSize).memberId() : null;
+
+        return new FollowListResponse(members, nextCursor);
+    }
+
+    public FollowListResponse findFollowerMembers(Long memberId, Long cursor, int pageSize) {
+        List<FollowMemberResponse> members = queryFactory
+            .select(Projections.constructor(
+                FollowMemberResponse.class,
+                member.id,
+                member.nickname,
+                memberImage.imageUrl
+            ))
+            .from(follow)
+            .join(follow.follower, member)
+            .leftJoin(member.memberImage, memberImage)
+            .where(
+                follow.following.id.eq(memberId),
+                cursor != null ? follow.id.lt(cursor) : null
+            )
+            .orderBy(follow.createdDate.desc())
+            .limit(pageSize + 1)
+            .fetch();
+
         Long nextCursor = members.size() > pageSize ? members.remove(pageSize).memberId() : null;
 
         return new FollowListResponse(members, nextCursor);
