@@ -60,7 +60,7 @@ public class FollowService {
             throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다.");
         }
 
-        return followQueryDSLRepository.findFollowMembers(targetId, cursor, pageSize);
+        return followQueryDSLRepository.findFollowingMembers(targetId, cursor, pageSize);
     }
 
     public FollowListResponse getFollowerMembers(final Long targetId, Long cursor, int pageSize) {
