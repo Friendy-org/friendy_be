@@ -28,6 +28,15 @@ public class CommentController implements SpringDocCommentController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/reply")
+    public ResponseEntity<Void> createReply(
+            HttpServletRequest httpServletRequest,
+            @Valid @RequestBody ReplyCreateRequest replyRequest
+    ) {
+        commentService.saveReply(replyRequest, httpServletRequest);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{commentId}")
     public ResponseEntity<Void> updateComment(
             HttpServletRequest httpServletRequest,
@@ -35,15 +44,6 @@ public class CommentController implements SpringDocCommentController {
             @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
         commentService.updateComment(commentUpdateRequest, commentId, httpServletRequest);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/reply")
-    public ResponseEntity<Void> createReply(
-            HttpServletRequest httpServletRequest,
-            @Valid @RequestBody ReplyCreateRequest replyRequest
-    ) {
-        commentService.saveReply(replyRequest, httpServletRequest);
         return ResponseEntity.ok().build();
     }
 }
