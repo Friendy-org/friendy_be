@@ -1,13 +1,16 @@
 package friendy.community.domain.follow.model;
 
 import friendy.community.domain.common.BaseEntity;
-import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.model.Member;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(
