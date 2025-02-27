@@ -49,31 +49,22 @@ public class Comment extends BaseEntity {
     @ColumnDefault("0")
     private Integer replyCount;
 
-    private Comment(final Member member, final Post post, final CommentType type, final String content) {
+    private Comment(final Member member, final Post post, final Comment parentComment, final CommentType type, final String content) {
         this.member = member;
         this.post = post;
+        this.parentComment = parentComment;
         this.type = type;
         this.content = content;
         this.likeCount = 0;
         this.replyCount = 0;
     }
 
-    protected Comment(final CommentCreateRequest request, final Member member, final Post post) {
-        this(member, post, CommentType.COMMENT, request.content());
-        this.parentComment = null;
-    }
-
-    protected Comment(final ReplyCreateRequest request, final Member member, final Post post, final Comment comment) {
-        this(member, post, CommentType.REPLY, request.content());
-        this.parentComment = comment;
-    }
-
     public static Comment of(final CommentCreateRequest request, final Member member, final Post post) {
-        return new Comment(request, member, post);
+        return new Comment(member, post, null, CommentType.COMMENT, request.content());
     }
 
-    public static Comment of(final ReplyCreateRequest request, final Member member, final Post post, final Comment comment) {
-        return new Comment(request, member, post, comment);
+    public static Comment of(final ReplyCreateRequest request, final Member member, final Post post, final Comment parentComment) {
+        return new Comment(member, post, parentComment, CommentType.REPLY, request.content());
     }
 
     public void updateReplyCount(final Integer replyCount) {
