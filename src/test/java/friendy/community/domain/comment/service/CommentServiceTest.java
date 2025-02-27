@@ -63,7 +63,7 @@ public class CommentServiceTest {
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
 
         Post post = PostFixture.postFixture();
-        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디")), httpServletRequest);
+        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null), httpServletRequest);
     }
 
     private void resetDataBase() {
