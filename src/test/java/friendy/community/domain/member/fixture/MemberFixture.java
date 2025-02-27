@@ -4,9 +4,10 @@ import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.encryption.SHA2PasswordEncryptor;
 import friendy.community.domain.member.model.Member;
-import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MemberFixture {
 
@@ -25,5 +26,21 @@ public class MemberFixture {
 
     public static String getFixturePlainPassword() {
         return "password123!";
+    }
+
+    public static List<Member> createMultipleMembers(int count) {
+        List<Member> members = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            String encryptedPassword = passwordEncryptor.encrypt("password" + i + "!", "salt");
+            MemberSignUpRequest request = new MemberSignUpRequest(
+                "user" + i + "@friendy.com",
+                "nickname" + i,
+                "password" + i + "!",
+                LocalDate.of(2000 + (i % 20), (i % 12) + 1, (i % 28) + 1),
+                "https://test.com/user" + i + ".jpg"
+            );
+            members.add(new Member(request, encryptedPassword, "salt"));
+        }
+        return members;
     }
 }
