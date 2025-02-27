@@ -12,9 +12,9 @@ import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+    import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,11 +36,40 @@ public class FollowService {
         Member following = memberRepository.findById(targetId)
             .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다."));
 
+            if (followRepository.existsByFollowerAndFollowing(follower, following)) {
+            throw new FriendyException(ErrorCode.ALREADY_EXISTS, "이미 팔로우한 회원입니다.");
+        }
+
         Follow follow = Follow.of(follower,following);
         followRepository.save(follow);
     }
 
-    public FollowListResponse getFollowingMembers(Long memberId, Long cursor, int pageSize) {
-        return followQueryDSLRepository.findFollowMembers(memberId, cursor, pageSize);
+    public void unfollow(final HttpServletRequest httpServletRequest, final Long targetId) {
+        final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
+        final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
+        Member follower = authService.getMemberByEmail(email);
+
+        Member following = memberRepository.findById(targetId)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다."));
+
+        Follow follow = followRepository.findByFollowerAndFollowing(follower, following)
+            .orElseThrow(() -> new FriendyException(ErrorCode.ALREADY_EXISTS, "팔로우하지 않은 회원입니다."));
+
+        followRepository.delete(follow);
+    }
+
+    public FollowListResponse getFollowingMembers(final Long targetId, Long cursor, int pageSize) {
+        return followQueryDSLRepository.findFollowMembers(targetId, cursor, pageSize);
+    }
+
+    public FollowListResponse getFollowerMembers(final Long targetId, Long cursor, int pageSize) {
+        return followQueryDSLRepository.findFollowerMembers(targetId, cursor, pageSize);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMutualFollow(Long memberId, Long targetId) {
+        boolean isFollowing = followRepository.existsByFollowerAndFollowing(memberRepository.getReferenceById(memberId), memberRepository.getReferenceById(targetId));
+        boolean isFollowedBy = followRepository.existsByFollowerAndFollowing(memberRepository.getReferenceById(targetId), memberRepository.getReferenceById(memberId));
+        return isFollowing && isFollowedBy;
     }
 }
