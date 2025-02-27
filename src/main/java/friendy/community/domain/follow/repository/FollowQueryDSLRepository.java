@@ -19,7 +19,7 @@ public class FollowQueryDSLRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public FollowListResponse findFollowMembers(Long memberId, Long cursor, int pageSize) {
+    public FollowListResponse findFollowingMembers(Long memberId, Long cursor, int pageSize) {
         List<FollowMemberResponse> members = queryFactory
             .select(Projections.constructor(
                 FollowMemberResponse.class,
