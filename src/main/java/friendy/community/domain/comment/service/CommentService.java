@@ -38,15 +38,6 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final HttpServletRequest httpServletRequest) {
-        final Comment comment = getCommentByCommentId(id);
-        final Member member = getMemberFromRequest(httpServletRequest);
-        validateCommentAuthor(comment, member);
-
-        comment.updateContent(commentUpdateRequest.content());
-        commentRepository.save(comment);
-    }
-
     public void saveReply(final ReplyCreateRequest replyCreateRequest, final HttpServletRequest httpServletRequest) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = getPostByPostId(replyCreateRequest.postId());
@@ -55,6 +46,15 @@ public class CommentService {
 
         parentComment.updateReplyCount(parentComment.getReplyCount() + 1);
         commentRepository.save(reply);
+    }
+
+    public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final HttpServletRequest httpServletRequest) {
+        final Comment comment = getCommentByCommentId(id);
+        final Member member = getMemberFromRequest(httpServletRequest);
+        validateCommentAuthor(comment, member);
+
+        comment.updateContent(commentUpdateRequest.content());
+        commentRepository.save(comment);
     }
 
     private void validateCommentAuthor(final Comment comment, final Member member) {
