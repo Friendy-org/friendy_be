@@ -4,6 +4,7 @@ import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.repository.CommentRepository;
@@ -37,6 +38,15 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
+    public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final HttpServletRequest httpServletRequest) {
+        final Comment comment = getCommentByCommentId(id);
+        final Member member = getMemberFromRequest(httpServletRequest);
+        validateCommentAuthor(comment, member);
+
+        comment.updateContent(commentUpdateRequest.content());
+        commentRepository.save(comment);
+    }
+
     public void saveReply(final ReplyCreateRequest replyCreateRequest, final HttpServletRequest httpServletRequest) {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = getPostByPostId(replyCreateRequest.postId());
@@ -47,9 +57,14 @@ public class CommentService {
         commentRepository.save(reply);
     }
 
-    private Comment getCommentByCommentId(Long commentId) {
+    private void validateCommentAuthor(final Comment comment, final Member member) {
+        if (!member.equals(comment.getMember()))
+            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 댓글(답글)을 수정할 수 있습니다.");
+    }
+
+    private Comment getCommentByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글입니다."));
+                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글(답글)입니다."));
     }
 
     private Member getMemberFromRequest(final HttpServletRequest httpServletRequest) {

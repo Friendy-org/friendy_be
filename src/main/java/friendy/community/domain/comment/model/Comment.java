@@ -2,7 +2,6 @@ package friendy.community.domain.comment.model;
 
 import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
@@ -71,7 +70,7 @@ public class Comment extends BaseEntity {
         this.replyCount = replyCount;
     }
 
-    public void updateContent(final CommentUpdateRequest request, final Member member) {
-        this.content = request.content();
+    public void updateContent(final String content) {
+        this.content = content;
     }
 }
