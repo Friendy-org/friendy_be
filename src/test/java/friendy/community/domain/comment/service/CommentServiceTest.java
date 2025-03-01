@@ -2,7 +2,9 @@ package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.fixture.CommentFixture;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
@@ -25,8 +27,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static friendy.community.domain.comment.CommentType.*;
@@ -73,6 +77,10 @@ public class CommentServiceTest {
         entityManager.clear();
     }
 
+    private void createComment() {
+        commentService.saveComment(new CommentCreateRequest("new Valid Comment", 1L), httpServletRequest);
+    }
+
     @Test
     @DisplayName("댓글 생성에 성공하면 데이터베이스에 댓글이 저장된다.")
     void createCommentSuccessfullyReturnsCommentId() {
@@ -91,8 +99,7 @@ public class CommentServiceTest {
     @Test
     @DisplayName("답글 생성에 성공하면 데이터베이스에 답글이 저장된다.")
     void createReplySuccesfullyReturnsReplyId() {
-        CommentCreateRequest commentCreateRequest = new CommentCreateRequest("this is parent comment", 1L);
-        commentService.saveComment(commentCreateRequest, httpServletRequest);
+        createComment();
 
         // Given
         ReplyCreateRequest request = new ReplyCreateRequest("new valid reply contents", 1L, 1L);
@@ -129,7 +136,59 @@ public class CommentServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentService.saveReply(request, httpServletRequest))
                 .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 댓글입니다.")
+                .hasMessageContaining("존재하지 않는 댓글(답글)입니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("댓글 (답글) 수정에 성공하면 저장된 댓글의 내용이 바뀐다.")
+    void updateCommentSuccessfullyChangesSavedCommentsContent() {
+        // Given
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
+        createComment();
+
+        // When
+        commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest);
+
+        // Then
+        List<Comment> savedComments = commentRepository.findAll();
+        assertThat(savedComments.size()).isEqualTo(1);
+        assertThat(savedComments).extracting(Comment::getContent).contains("new valid content");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 댓글 id를 수정 요청하면 404 Not Found 예외를 발생한다.")
+    void updateCommentWithNonExistCommentThrows404NotFound() {
+        // Given
+        createComment();
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
+
+        // When & Then
+        List<Comment> savedComments = commentRepository.findAll();
+        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 2025L, httpServletRequest))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("존재하지 않는 댓글(답글)입니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("다른 사람의 댓글을 수정 요청하면 401 UNAUTHORIZED 예외를 발생한다.")
+    void updateOtherUsersCommentThrows401Unauthorized() {
+        // Given
+        createComment();
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
+
+        memberService.signUp(new MemberSignUpRequest(
+                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
+
+        httpServletRequest = new MockHttpServletRequest();
+        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
+
+        // When & Then
+        List<Comment> savedComments = commentRepository.findAll();
+        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("작성자만 댓글(답글)을 수정할 수 있습니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
     }
 }
