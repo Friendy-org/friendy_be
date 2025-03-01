@@ -8,6 +8,13 @@ public class TokenFixtures {
     public static final String CORRECT_ACCESS_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.I5Y8zaMf6ys1X3ESNzVK3HzH7mJFquPwiyAnmiH4RQg";
     public static final String CORRECT_REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.I5Y8zaMf6ys1X3ESNzVK3HzH7mJFquPwiyAnmiH4RQg";
 
+    /**
+     * OTHER_USER_TOKEN
+     * email: user@example.com
+     * nickname: 홍길동
+     * password: password123!
+     * birthday: 2002-08-13
+     */
     public static final String OTHER_USER_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3MDcwNTI4MDAsImV4cCI6NDg1NDg4MzIwMH0.KBSErlIecTDvYFvmO0D0QQX1cnNeTf9KDgTGgOFY1f0";
 
     public static final String MALFORMED_JWT_TOKEN = "aabbcc";
