@@ -7,7 +7,9 @@ import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final ReplyRepository replyRepository;
     private final JwtTokenExtractor jwtTokenExtractor;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
@@ -42,29 +45,48 @@ public class CommentService {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = getPostByPostId(replyCreateRequest.postId());
         final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
-        final Comment reply = Comment.of(replyCreateRequest, member, post, parentComment);
+        final Reply reply = Reply.of(replyCreateRequest, member, post, parentComment);
 
         parentComment.updateReplyCount(parentComment.getReplyCount() + 1);
-        commentRepository.save(reply);
+        replyRepository.save(reply);
     }
 
     public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final HttpServletRequest httpServletRequest) {
-        final Comment comment = getCommentByCommentId(id);
         final Member member = getMemberFromRequest(httpServletRequest);
-        validateCommentAuthor(comment, member);
+        final Comment comment = getCommentByCommentId(id);
+        validateAuthor(comment, member);
 
         comment.updateContent(commentUpdateRequest.content());
         commentRepository.save(comment);
     }
 
-    private void validateCommentAuthor(final Comment comment, final Member member) {
+    public void updateReply(final CommentUpdateRequest commentUpdateRequest, Long id, final HttpServletRequest httpServletRequest) {
+        final Member member = getMemberFromRequest(httpServletRequest);
+        final Reply reply = getReplyByReplyId(id);
+        validateAuthor(reply, member);
+
+        reply.updateContent(commentUpdateRequest.content());
+        replyRepository.save(reply);
+    }
+
+    private void validateAuthor(final Comment comment, final Member member) {
         if (!member.equals(comment.getMember()))
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 댓글(답글)을 수정할 수 있습니다.");
+            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 댓글을 수정할 수 있습니다.");
+    }
+
+    private void validateAuthor(final Reply reply, final Member member) {
+        if (!member.equals(reply.getMember()))
+            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 답글을 수정할 수 있습니다.");
     }
 
     private Comment getCommentByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글(답글)입니다."));
+                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글입니다."));
+    }
+
+    private Reply getReplyByReplyId(final Long replyId) {
+        return replyRepository.findById(replyId)
+                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 답글입니다."));
     }
 
     private Member getMemberFromRequest(final HttpServletRequest httpServletRequest) {
