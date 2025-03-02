@@ -1,8 +1,6 @@
 package friendy.community.domain.comment.model;
 
-import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;

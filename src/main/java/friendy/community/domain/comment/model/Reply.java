@@ -1,5 +1,6 @@
 package friendy.community.domain.comment.model;
 
+import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;
@@ -44,6 +45,10 @@ public class Reply extends BaseEntity {
         this.comment = comment;
         this.content = content;
         this.likeCount = 0;
+    }
+
+    public static Reply of(final ReplyCreateRequest request, final Member member, final Post post, final Comment comment) {
+        return new Reply(member, post, comment, request.content());
     }
 
     public void updateLikeCount(final Integer likeCount) {
