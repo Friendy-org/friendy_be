@@ -1,9 +1,9 @@
 package friendy.community.domain.comment.fixture;
 
-import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.fixture.PostFixture;
@@ -14,7 +14,7 @@ public class CommentFixture {
         return createComment("new Valid Comment", 1L);
     }
 
-    public static Comment replyFixture() {
+    public static Reply replyFixture() {
         return createReply("new Valid Reply", 1L, 1L);
     }
 
@@ -24,10 +24,10 @@ public class CommentFixture {
         return Comment.of(new CommentCreateRequest(content, postId), member, post);
     }
 
-    private static Comment createReply(String content, Long postId, Long commentId) {
+    private static Reply createReply(String content, Long postId, Long commentId) {
         Member member = MemberFixture.memberFixture();
         Post post = PostFixture.postFixture();
-        Comment parentComment = commentFixture();
-        return Comment.of(new ReplyCreateRequest(content, postId, commentId), member, post, parentComment);
+        Comment comment = commentFixture();
+        return Reply.of(new ReplyCreateRequest(content, postId, commentId), member, post, comment);
     }
 }
