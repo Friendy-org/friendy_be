@@ -1,12 +1,14 @@
 package friendy.community.domain.comment.service;
 
-import friendy.community.domain.comment.CommentType;
+import friendy.community.domain.auth.dto.request.LoginRequest;
+import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
-import friendy.community.domain.comment.fixture.CommentFixture;
 import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
@@ -33,7 +35,6 @@ import java.util.List;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static friendy.community.domain.comment.CommentType.*;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 
 @SpringBootTest
@@ -46,7 +47,11 @@ public class CommentServiceTest {
     @Autowired
     private CommentRepository commentRepository;
     @Autowired
+    private ReplyRepository replyRepository;
+    @Autowired
     private MemberService memberService;
+    @Autowired
+    private AuthService authService;
     @Autowired
     private PostService postService;
     @Autowired
@@ -62,6 +67,8 @@ public class CommentServiceTest {
         member = MemberFixture.memberFixture();
         memberService.signUp(new MemberSignUpRequest(
                 member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+
+        authService.login(new LoginRequest(member.getEmail(), member.getPassword()));
 
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
@@ -108,10 +115,12 @@ public class CommentServiceTest {
         commentService.saveReply(request, httpServletRequest);
 
         // Then
+        List<Reply> savedReplies = replyRepository.findAll();
+        assertThat(savedReplies.size()).isEqualTo(1);
+        assertThat(savedReplies).extracting(Reply::getContent).contains("new valid reply contents");
+
         List<Comment> savedComments = commentRepository.findAll();
-        assertThat(savedComments.size()).isEqualTo(2);
-        assertThat(savedComments).extracting(Comment::getType).contains(REPLY);
-        assertThat(savedComments).extracting(Comment::getContent).contains("new valid reply contents");
+        assertThat(savedComments.getFirst()).extracting("replyCount").isEqualTo(1);
     }
 
     @Test
@@ -136,7 +145,7 @@ public class CommentServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentService.saveReply(request, httpServletRequest))
                 .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 댓글(답글)입니다.")
+                .hasMessageContaining("존재하지 않는 댓글입니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
@@ -167,7 +176,7 @@ public class CommentServiceTest {
         List<Comment> savedComments = commentRepository.findAll();
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 2025L, httpServletRequest))
                 .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 댓글(답글)입니다.")
+                .hasMessageContaining("존재하지 않는 댓글입니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
@@ -181,6 +190,8 @@ public class CommentServiceTest {
         memberService.signUp(new MemberSignUpRequest(
                 "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
 
+        authService.login(new LoginRequest("user@example.com", "password123!"));
+
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
 
@@ -188,7 +199,7 @@ public class CommentServiceTest {
         List<Comment> savedComments = commentRepository.findAll();
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest))
                 .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("작성자만 댓글(답글)을 수정할 수 있습니다.")
+                .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
     }
 }

@@ -1,6 +1,5 @@
 package friendy.community.domain.comment.model;
 
-import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.fixture.CommentFixture;
@@ -41,30 +40,27 @@ public class CommentTest {
 
         // Then
         assertNotNull(comment);
-        assertNull(comment.getParentComment());
         assertEquals(content, comment.getContent());
         assertEquals(member, comment.getMember());
         assertEquals(post, comment.getPost());
-        assertEquals(CommentType.COMMENT, comment.getType());
     }
 
     @Test
-    @DisplayName("Comment 객체가 답글 생성 요청을 기반으로 생성된다.")
+    @DisplayName("Reply 객체가 답글 생성 요청을 기반으로 생성된다.")
     void ofMethodCreatesCommentFromReplyRequest() {
         // Given
         String content = "This is a new reply content.";
         ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest(content, post.getId(), comment.getId());
 
         // When
-        Comment reply = Comment.of(replyCreateRequest, member, post, comment);
+        Reply reply = Reply.of(replyCreateRequest, member, post, comment);
 
         // Then
         assertNotNull(reply);
         assertEquals(content, reply.getContent());
-        assertEquals(comment, reply.getParentComment());
+        assertEquals(comment, reply.getComment());
         assertEquals(member, reply.getMember());
         assertEquals(post, reply.getPost());
-        assertEquals(CommentType.REPLY, reply.getType());
     }
 
 }

@@ -48,6 +48,8 @@ class JwtTokenProviderTest {
         String email = "example@friendy.com";
         String accessToken = jwtTokenProvider.generateAccessToken(email);
 
+        when(redisTemplate.hasKey(email)).thenReturn(true);
+
         // when
         String extractedEmail = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
 

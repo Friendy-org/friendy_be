@@ -1,16 +1,10 @@
 package friendy.community.domain.comment.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import friendy.community.domain.comment.CommentType;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
-import friendy.community.domain.comment.fixture.CommentFixture;
-import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.service.CommentService;
-import friendy.community.domain.post.dto.request.PostUpdateRequest;
-import friendy.community.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
