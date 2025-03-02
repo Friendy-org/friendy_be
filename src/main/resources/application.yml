@@ -38,6 +38,14 @@ spring:
     mode: HTML
     encoding: UTF-8
     cache: false
+  devtools:
+    restart:
+      enabled: true  # 자동 재시작 활성화
+    livereload:
+      enabled: true  # LiveReload 활성화
+    remote:
+      restart:
+        enabled: false # 원격 재시작 비활성화
 
 friendy:
   community:
