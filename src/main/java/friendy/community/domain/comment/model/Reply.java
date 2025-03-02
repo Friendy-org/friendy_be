@@ -1,8 +1,5 @@
 package friendy.community.domain.comment.model;
 
-import friendy.community.domain.comment.CommentType;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.common.BaseEntity;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.model.Post;
@@ -17,7 +14,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Comment extends BaseEntity {
+public class Reply extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,6 +27,10 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "postId", nullable = false)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commentId", nullable = false)
+    private Comment comment;
+
     @Column(nullable = false)
     private String content;
 
@@ -37,24 +38,12 @@ public class Comment extends BaseEntity {
     @ColumnDefault("0")
     private Integer likeCount;
 
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private Integer replyCount;
-
-    private Comment(final Member member, final Post post, final String content) {
+    private Reply(final Member member, final Post post, final Comment comment, final String content) {
         this.member = member;
         this.post = post;
+        this.comment = comment;
         this.content = content;
         this.likeCount = 0;
-        this.replyCount = 0;
-    }
-
-    public static Comment of(final CommentCreateRequest request, final Member member, final Post post) {
-        return new Comment(member, post, request.content());
-    }
-
-    public void updateReplyCount(final Integer replyCount) {
-        this.replyCount = replyCount;
     }
 
     public void updateLikeCount(final Integer likeCount) {
