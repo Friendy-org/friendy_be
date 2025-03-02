@@ -46,4 +46,14 @@ public class CommentController implements SpringDocCommentController {
         commentService.updateComment(commentUpdateRequest, commentId, httpServletRequest);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/reply/{replyId}")
+    public ResponseEntity<Void> updateReply(
+            HttpServletRequest httpServletRequest,
+            @PathVariable Long replyId,
+            @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
+    ) {
+        commentService.updateReply(commentUpdateRequest, replyId, httpServletRequest);
+        return ResponseEntity.ok().build();
+    }
 }
