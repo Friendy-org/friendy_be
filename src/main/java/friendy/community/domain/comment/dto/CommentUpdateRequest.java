@@ -1,9 +1,7 @@
 package friendy.community.domain.comment.dto;
 
-import friendy.community.domain.comment.CommentType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "댓글(답글) 수정")
