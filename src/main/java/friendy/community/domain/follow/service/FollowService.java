@@ -28,12 +28,12 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final FollowQueryDSLRepository followQueryDSLRepository;
 
-    public void follow(final HttpServletRequest httpServletRequest, final Long targetId) {
+    public void follow(final HttpServletRequest httpServletRequest, final Long memberId) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
         Member follower = authService.getMemberByEmail(email);
 
-        Member following = getValidTargetMember(follower, targetId);
+        Member following = getValidTargetMember(follower, memberId);
 
         if (followRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new FriendyException(ErrorCode.ALREADY_EXISTS, "이미 팔로우한 회원입니다.");
@@ -43,11 +43,11 @@ public class FollowService {
         followRepository.save(follow);
     }
 
-    public void unfollow(final HttpServletRequest httpServletRequest, final Long targetId) {
+    public void unfollow(final HttpServletRequest httpServletRequest, final Long memberId) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
         Member follower = authService.getMemberByEmail(email);
-        Member following = getValidTargetMember(follower, targetId);
+        Member following = getValidTargetMember(follower, memberId);
 
         Follow follow = followRepository.findByFollowerAndFollowing(follower, following)
             .orElseThrow(() -> new FriendyException(ErrorCode.ALREADY_EXISTS, "팔로우하지 않은 회원입니다."));
@@ -55,20 +55,20 @@ public class FollowService {
         followRepository.delete(follow);
     }
 
-    public FollowListResponse getFollowingMembers(final Long targetId, Long cursor, int pageSize) {
-        if (!memberRepository.existsById(targetId)) {
+    public FollowListResponse getFollowingMembers(final Long memberId, final Long startIndex, final int pageSize) {
+        if (!memberRepository.existsById(memberId)) {
             throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다.");
         }
 
-        return followQueryDSLRepository.findFollowingMembers(targetId, cursor, pageSize);
+        return followQueryDSLRepository.findFollowingMembers(memberId, startIndex, pageSize);
     }
 
-    public FollowListResponse getFollowerMembers(final Long targetId, Long cursor, int pageSize) {
-        if (!memberRepository.existsById(targetId)) {
+    public FollowListResponse getFollowerMembers(final Long memberId, final Long startIndex, final int pageSize) {
+        if (!memberRepository.existsById(memberId)) {
             throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다.");
         }
 
-        return followQueryDSLRepository.findFollowerMembers(targetId, cursor, pageSize);
+        return followQueryDSLRepository.findFollowerMembers(memberId, startIndex, pageSize);
     }
 
     @Transactional(readOnly = true)
@@ -78,12 +78,26 @@ public class FollowService {
         return isFollowing && isFollowedBy;
     }
 
-    private Member getValidTargetMember(Member requester, Long targetId) {
-        if (requester.getId().equals(targetId)) {
+    @Transactional(readOnly = true)
+    public long getFollowerCount(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다."));
+        return followRepository.countByFollower(member);
+    }
+
+    @Transactional(readOnly = true)
+    public long getFollowingCount(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다."));
+        return followRepository.countByFollowing(member);
+    }
+
+    private Member getValidTargetMember(Member requester, Long memberId) {
+        if (requester.getId().equals(memberId)) {
             throw new FriendyException(ErrorCode.INVALID_REQUEST, "자기 자신을 대상으로 수행할 수 없습니다.");
         }
 
-        return memberRepository.findById(targetId)
+        return memberRepository.findById(memberId)
             .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다."));
     }
 }
