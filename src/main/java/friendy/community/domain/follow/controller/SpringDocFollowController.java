@@ -27,7 +27,7 @@ public interface SpringDocFollowController {
     })
     ResponseEntity<Void> follow(
         HttpServletRequest httpServletRequest,
-        @PathVariable Long targetId
+        @PathVariable Long memberId
     );
 
     @Operation(summary = "언팔로우", description = "특정 사용자의 팔로우를 취소합니다.")
@@ -43,7 +43,7 @@ public interface SpringDocFollowController {
     })
     ResponseEntity<Void> unfollow(
         HttpServletRequest httpServletRequest,
-        @PathVariable Long targetId
+        @PathVariable Long memberId
     );
 
     @Operation(summary = "팔로잉 리스트 조회", description = "특정 사용자가 팔로우하는 멤버 목록을 가져옵니다.")
@@ -53,7 +53,7 @@ public interface SpringDocFollowController {
     })
     public ResponseEntity<FollowListResponse> getFollowingMembers(
         @PathVariable Long memberId,
-        @RequestParam(required = false) Long cursor
+        @RequestParam(required = false) Long startIndex
     );
 
     @Operation(summary = "팔로워 리스트 조회", description = "특정 사용자를 팔로우하는 멤버 목록을 가져옵니다.")
@@ -63,6 +63,6 @@ public interface SpringDocFollowController {
     })
     ResponseEntity<FollowListResponse> getFollowerMembers(
         @PathVariable Long memberId,
-        @RequestParam(required = false) Long cursor
+        @RequestParam(required = false) Long startIndex
     );
 }
