@@ -4,6 +4,6 @@ import java.util.List;
 
 public record FollowListResponse(
     List<FollowMemberResponse> members,
-    Long nextCursor
+    boolean hasNext
 ) {
 }
