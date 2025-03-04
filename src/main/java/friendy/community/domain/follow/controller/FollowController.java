@@ -9,43 +9,43 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/follows")
-public class FollowController implements SpringDocFollowController{
+@RequestMapping("/follow")
+public class FollowController implements SpringDocFollowController {
     private final FollowService followService;
 
-    @PostMapping("/{targetId}")
+    @PostMapping("/{memberId}")
     public ResponseEntity<Void> follow(
         HttpServletRequest httpServletRequest,
-        @PathVariable final Long targetId
+        @PathVariable final Long memberId
     ) {
-        followService.follow(httpServletRequest, targetId);
+        followService.follow(httpServletRequest, memberId);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{targetId}")
+    @DeleteMapping("/{memberId}")
     public ResponseEntity<Void> unfollow(
         HttpServletRequest httpServletRequest,
-        @PathVariable Long targetId
+        @PathVariable Long memberId
     ) {
-        followService.unfollow(httpServletRequest, targetId);
+        followService.unfollow(httpServletRequest, memberId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{targetId}/following")
+    @GetMapping("/following/{memberId}")
     public ResponseEntity<FollowListResponse> getFollowingMembers(
-        @PathVariable final Long targetId,
-        @RequestParam(required = false) Long cursor
+        @PathVariable final Long memberId,
+        @RequestParam(required = false) Long startIndex
     ) {
-        FollowListResponse response = followService.getFollowingMembers(targetId, cursor, 10);
+        FollowListResponse response = followService.getFollowingMembers(memberId, startIndex, 10);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{targetId}/followers")
+    @GetMapping("/follower/{memberId}")
     public ResponseEntity<FollowListResponse> getFollowerMembers(
-        @PathVariable final Long targetId,
-        @RequestParam(required = false) Long cursor
+        @PathVariable final Long memberId,
+        @RequestParam(required = false) Long startIndex
     ) {
-        FollowListResponse response = followService.getFollowerMembers(targetId, cursor, 10);
+        FollowListResponse response = followService.getFollowerMembers(memberId, startIndex, 10);
         return ResponseEntity.ok(response);
     }
 }
