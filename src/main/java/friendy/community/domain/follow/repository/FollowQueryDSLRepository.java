@@ -19,7 +19,7 @@ public class FollowQueryDSLRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public FollowListResponse findFollowingMembers(Long memberId, Long cursor, int pageSize) {
+    public FollowListResponse findFollowingMembers(Long memberId, Long startIndex, int pageSize) {
         List<FollowMemberResponse> members = queryFactory
             .select(Projections.constructor(
                 FollowMemberResponse.class,
@@ -30,19 +30,21 @@ public class FollowQueryDSLRepository {
             .from(follow)
             .join(follow.following, member)
             .leftJoin(member.memberImage, memberImage)
-            .where(
-                follow.follower.id.eq(memberId),
-                cursor != null ? follow.id.lt(cursor) : null
-            )
+            .where(follow.follower.id.eq(memberId))
             .orderBy(follow.createdDate.desc())
+            .offset(startIndex)
             .limit(pageSize + 1)
             .fetch();
-        Long nextCursor = members.size() > pageSize ? members.remove(pageSize).memberId() : null;
 
-        return new FollowListResponse(members, nextCursor);
+        boolean hasNext = members.size() > pageSize;
+        if (hasNext) {
+            members.remove(pageSize);
+        }
+
+        return new FollowListResponse(members, hasNext);
     }
 
-    public FollowListResponse findFollowerMembers(Long memberId, Long cursor, int pageSize) {
+    public FollowListResponse findFollowerMembers(Long memberId, Long startIndex, int pageSize) {
         List<FollowMemberResponse> members = queryFactory
             .select(Projections.constructor(
                 FollowMemberResponse.class,
@@ -53,16 +55,17 @@ public class FollowQueryDSLRepository {
             .from(follow)
             .join(follow.follower, member)
             .leftJoin(member.memberImage, memberImage)
-            .where(
-                follow.following.id.eq(memberId),
-                cursor != null ? follow.id.lt(cursor) : null
-            )
+            .where(follow.following.id.eq(memberId))
             .orderBy(follow.createdDate.desc())
+            .offset(startIndex)
             .limit(pageSize + 1)
             .fetch();
 
-        Long nextCursor = members.size() > pageSize ? members.remove(pageSize).memberId() : null;
+        boolean hasNext = members.size() > pageSize;
+        if (hasNext) {
+            members.remove(pageSize);
+        }
 
-        return new FollowListResponse(members, nextCursor);
+        return new FollowListResponse(members, hasNext);
     }
 }
