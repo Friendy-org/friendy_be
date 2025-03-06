@@ -81,8 +81,8 @@ public class CommentServiceTest {
     private void resetDataBase() {
         commentRepository.deleteAll();
         replyRepository.deleteAll();
-        entityManager.createNativeQuery("TRUNCATE TABLE post AUTO_INCREMENT = 1;").executeUpdate();
-        entityManager.createNativeQuery("TRUNCATE TABLE comment AUTO_INCREMENT = 1;").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE post AUTO_INCREMENT = 1;").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE comment AUTO_INCREMENT = 1;").executeUpdate();
         entityManager.flush();
         entityManager.clear();
     }
