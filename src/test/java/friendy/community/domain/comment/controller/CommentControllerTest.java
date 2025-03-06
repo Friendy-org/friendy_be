@@ -158,7 +158,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("댓글(답글) 수정 성공 시 200 Ok 응답")
+    @DisplayName("댓글 수정 성공 시 200 Ok 응답")
     void updateCommentSuccessfullyReturns200Ok() throws Exception {
         // Given
         Long commentId = 1L;
@@ -175,7 +175,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("빈 내용으로 댓글(답글) 수정 요청 시 400 Bad Request 응답")
+    @DisplayName("빈 내용으로 댓글 수정 요청 시 400 Bad Request 응답")
     void updateCommentWithoutContentReturns400BadRequest() throws Exception {
         // Given
         Long commentId = 1L;
@@ -192,7 +192,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("댓글(답글)수정 요청의 내용이 제한을 초과하는 경우 400 Bad Request 응답")
+    @DisplayName("댓글 수정 요청의 내용이 제한을 초과하는 경우 400 Bad Request 응답")
     void updateCommentWithExceedingContentsLengthLimitReturns400BadRequest() throws Exception {
         // Given
         Long commentId = 1L;
@@ -206,5 +206,22 @@ public class CommentControllerTest {
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("답글 수정 성공 시 200 Ok 응답")
+    void updateReplySuccessfullyReturns200Ok() throws Exception {
+        // Given
+        Long replyId = 1L;
+        CommentUpdateRequest updateRequest = new CommentUpdateRequest("new valid content");
+
+        doNothing().when(commentService).updateReply(any(CommentUpdateRequest.class), eq(replyId), any(HttpServletRequest.class));
+
+        // When & Then
+        mockMvc.perform(post("/comments/reply/{replyId}", replyId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateRequest)))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 }
