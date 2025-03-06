@@ -68,9 +68,7 @@ public class CommentServiceTest {
         member = MemberFixture.memberFixture();
         memberService.signUp(new MemberSignUpRequest(
                 member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
-
-//        authService.login(new LoginRequest(member.getEmail(), member.getPassword()));
-
+        
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
 
@@ -182,25 +180,24 @@ public class CommentServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
-//    @Test
-//    @DisplayName("다른 사람의 댓글을 수정 요청하면 401 UNAUTHORIZED 예외를 발생한다.")
-//    void updateOtherUsersCommentThrows401Unauthorized() {
-//        // Given
-//        createComment();
-//        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
-//
-//        memberService.signUp(new MemberSignUpRequest(
-//                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
-//        authService.login(new LoginRequest("user@example.com", "password123!"));
-//        httpServletRequest = new MockHttpServletRequest();
-//        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
-//
-//        // When & Then
-//        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest))
-//                .isInstanceOf(FriendyException.class)
-//                .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
-//                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
-//    }
+    @Test
+    @DisplayName("다른 사람의 댓글을 수정 요청하면 401 UNAUTHORIZED 예외를 발생한다.")
+    void updateOtherUsersCommentThrows401Unauthorized() {
+        // Given
+        createComment();
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
+
+        memberService.signUp(new MemberSignUpRequest(
+                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
+        httpServletRequest = new MockHttpServletRequest();
+        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+    }
 
     @Test
     @DisplayName("답글 수정에 성공하면 저장된 답글의 내용이 바뀐다.")
@@ -221,29 +218,28 @@ public class CommentServiceTest {
         assertThat(savedReplies).extracting(Reply::getContent).contains("new valid content");
     }
 
-//    @Test
-//    @DisplayName("다른 사용자의 답글을 수정 요청하면 401 Unauthorized 예외를 발생한다.")
-//    void updateOtherUsersReplyThrows401Unauthorized() {
-//        // Given
-//        createComment();
-//
-//        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("origin valid content", 1L, 1L);
-//        commentService.saveReply(replyCreateRequest, httpServletRequest);
-//
-//        Reply savedReply = replyRepository.findAll().getFirst();
-//
-//        memberService.signUp(new MemberSignUpRequest(
-//                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
-//        authService.login(new LoginRequest("user@example.com", "password123!"));
-//        httpServletRequest = new MockHttpServletRequest();
-//        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
-//
-//        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
-//
-//        // When & Then
-//        assertThatThrownBy(() -> commentService.updateReply(commentUpdateRequest, savedReply.getId(), httpServletRequest))
-//                .isInstanceOf(FriendyException.class)
-//                .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
-//                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
-//    }
+    @Test
+    @DisplayName("다른 사용자의 답글을 수정 요청하면 401 Unauthorized 예외를 발생한다.")
+    void updateOtherUsersReplyThrows401Unauthorized() {
+        // Given
+        createComment();
+
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("origin valid content", 1L, 1L);
+        commentService.saveReply(replyCreateRequest, httpServletRequest);
+
+        Reply savedReply = replyRepository.findAll().getFirst();
+
+        memberService.signUp(new MemberSignUpRequest(
+                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
+        httpServletRequest = new MockHttpServletRequest();
+        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
+
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateReply(commentUpdateRequest, savedReply.getId(), httpServletRequest))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+    }
 }
