@@ -51,8 +51,6 @@ public class CommentServiceTest {
     private ReplyRepository replyRepository;
     @Autowired
     private MemberService memberService;
-//    @Autowired
-//    private AuthService authService;
     @Autowired
     private PostService postService;
     @Autowired
@@ -68,7 +66,7 @@ public class CommentServiceTest {
         member = MemberFixture.memberFixture();
         memberService.signUp(new MemberSignUpRequest(
                 member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
-        
+
         httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
 
