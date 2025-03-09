@@ -1,11 +1,17 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.auth.jwt.JwtTokenExtractor;
+import friendy.community.domain.auth.jwt.JwtTokenProvider;
+import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.response.FindCommentResponse;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
+import friendy.community.domain.comment.repository.CommentQueryDSLRepository;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.model.Member;
@@ -16,6 +22,9 @@ import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +37,11 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
     private final MemberService memberService;
+    private final CommentQueryDSLRepository commentQueryDSLRepository;
+    private final JwtTokenExtractor jwtTokenExtractor;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
+
     private final PostRepository postRepository;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
@@ -93,6 +107,20 @@ public class CommentService {
         replyRepository.delete(reply);
     }
 
+    public FindAllCommentsResponse getComments(final Pageable pageable, final Long postId) {
+        Post post = getPostByPostId(postId);
+
+        Pageable defaultPageable = PageRequest.of(pageable.getPageNumber(), 10);
+        Page<Comment> commentPage = commentQueryDSLRepository.findAllComments(defaultPageable, postId);
+
+        validatePageNumber(defaultPageable.getPageNumber(), commentPage);
+        List<FindCommentResponse> findCommentsResponses = commentPage.getContent().stream()
+                .map(FindCommentResponse::from)
+                .toList();
+
+        return new FindAllCommentsResponse(findCommentsResponses, commentPage.getTotalPages());
+    }
+
     private void validateAuthor(final Comment comment, final Member member) {
         if (!member.equals(comment.getMember()))
             throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_COMMENT_USER);
@@ -101,6 +129,11 @@ public class CommentService {
     private void validateAuthor(final Reply reply, final Member member) {
         if (!member.equals(reply.getMember()))
             throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_REPLY_USER);
+    }
+
+    private void validatePageNumber(int requestedPage, Page<?> page) {
+        if (requestedPage >= page.getTotalPages())
+            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "요청한 페이지가 존재하지 않습니다.");
     }
 
     private Comment getCommentByCommentId(final Long commentId) {
