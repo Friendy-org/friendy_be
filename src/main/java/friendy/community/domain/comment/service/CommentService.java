@@ -40,6 +40,8 @@ public class CommentService {
         final Post post = getPostByPostId(commentCreateRequest.postId());
         final Comment comment = Comment.of(commentCreateRequest, member, post);
 
+        post.updateCommentCount(post.getCommentCount() + 1);
+
         commentRepository.save(comment);
     }
 
@@ -78,7 +80,10 @@ public class CommentService {
 
         List<Reply> replies = replyRepository.findAllByComment(comment);
         replyRepository.deleteAll(replies);
-        
+
+        Post post = comment.getPost();
+        post.updateCommentCount(post.getCommentCount() - 1);
+
         commentRepository.delete(comment);
     }
 
