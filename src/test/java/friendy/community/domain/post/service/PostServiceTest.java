@@ -1,5 +1,9 @@
 package friendy.community.domain.post.service;
 
+import friendy.community.domain.comment.dto.CommentCreateRequest;
+import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
@@ -44,11 +48,15 @@ class PostServiceTest {
     @Autowired
     private PostService postService;
     @Autowired
+    private PostRepository postRepository;
+    @Autowired
     private MemberService memberService;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
-    private PostRepository postRepository;
+    private CommentService commentService;
+    @Autowired
+    private CommentRepository commentRepository;
     @Autowired
     private EntityManager entityManager;
     @MockitoBean
@@ -197,6 +205,25 @@ class PostServiceTest {
             .isInstanceOf(FriendyException.class)
             .hasMessageContaining("게시글은 작성자 본인만 관리할 수 있습니다.")
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN_ACCESS);
+    }
+
+    @Test
+    @DisplayName("댓글이 달린 게시글 삭제 시 댓글도 모두 삭제된다.")
+    void deletePostWithCommentsSuccessfullyDeletesAllOfThen() {
+        // Given
+        createPost();
+        Post post = postRepository.findAll().getFirst();
+
+        CommentCreateRequest commentRequest = new CommentCreateRequest("new valid comment", post.getId());
+        commentService.saveComment(commentRequest, httpServletRequest);
+
+        // When
+        postService.deletePost(httpServletRequest, post.getId());
+
+        // Then
+        List<Comment> comments = commentRepository.findAll();
+        assertThat(comments.size()).isEqualTo(0);
+        assertThat(post.getCommentCount()).isEqualTo(0);
     }
 
     @Test
