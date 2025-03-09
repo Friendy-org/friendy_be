@@ -1,9 +1,17 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.comment.dto.*;
+import friendy.community.domain.auth.jwt.JwtTokenExtractor;
+import friendy.community.domain.auth.jwt.JwtTokenProvider;
+import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.FindAllReplyResponse;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
+import friendy.community.domain.comment.repository.CommentQueryDSLRepository;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.comment.repository.ReplyQueryDSLRepository;
 import friendy.community.domain.comment.repository.ReplyRepository;
@@ -28,6 +36,11 @@ public class CommentService {
     private final ReplyRepository replyRepository;
     private final ReplyQueryDSLRepository replyQueryDSLRepository;
     private final MemberService memberService;
+    private final CommentQueryDSLRepository commentQueryDSLRepository;
+    private final JwtTokenExtractor jwtTokenExtractor;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
+
     private final PostRepository postRepository;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
@@ -91,6 +104,10 @@ public class CommentService {
         comment.updateReplyCount(comment.getReplyCount() - 1);
 
         replyRepository.delete(reply);
+    }
+
+    public FindAllCommentsResponse getCommentsByLastId(final Long lastCommentId) {
+        return commentQueryDSLRepository.getCommentsByLastId(lastCommentId, 10);
     }
 
     public FindAllReplyResponse getRepliesByLastId(Long lastReplyId) {

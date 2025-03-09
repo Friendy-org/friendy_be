@@ -1,10 +1,11 @@
 package friendy.community.domain.comment.controller;
 
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.FindAllReplyResponse;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
 import friendy.community.global.response.FriendyResponse;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
@@ -28,7 +29,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "댓글 작성 대상 게시글 누락", exampleMessage = "댓글이 달릴 게시글이 명시되지 않았습니다."),
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments", errorCases = {
-            @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다.")
+            @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "요청 게시글이 존재하지 않습니다.")
     })
     ResponseEntity<FriendyResponse<Void>> createComment(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
@@ -62,7 +63,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "답글 작성 대상 댓글 누락", exampleMessage = "답글이 달릴 댓글이 명시되지 않았습니다."),
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply", errorCases = {
-            @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다."),
+            @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "요청 게시글이 존재하지 않습니다."),
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> createReply(
@@ -112,6 +113,17 @@ public interface SpringDocCommentController {
     ResponseEntity<Void> deleteReply(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long replyId
+    );
+
+    @Operation(summary = "댓글 조회")
+    @ApiResponse(responseCode = "200", description = "댓글 조회 성공")
+    @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/list", errorCases = {
+            @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "요청 게시글이 존재하지 않습니다."),
+            @ErrorCase(description = "페이지 범위 초과", exampleMessage = "요청한 페이지가 존재하지 않습니다.")
+    })
+    ResponseEntity<FriendyResponse<FindAllCommentsResponse>> getAllComments(
+            @PathVariable Long postId,
+            @RequestParam(required = false) Long lastCommentId
     );
 
     @Operation(summary = "답글 조회")

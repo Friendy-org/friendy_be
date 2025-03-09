@@ -1,10 +1,11 @@
 package friendy.community.domain.comment.controller;
 
 import friendy.community.domain.comment.controller.code.CommentSuccessCode;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.FindAllReplyResponse;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
@@ -75,6 +76,14 @@ public class CommentController implements SpringDocCommentController {
     ) {
         commentService.deleteReply(replyId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/list/{postId}")
+    public ResponseEntity<FriendyResponse<FindAllCommentsResponse>> getAllComments(
+            @PathVariable Long postId,
+            @RequestParam(required = false) Long lastCommentId
+    ) {
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.GET_ALL_COMMENTS_SUCCESS, commentService.getCommentsByLastId(lastCommentId)));
     }
 
     @GetMapping("/reply/list/{commentId}")
