@@ -1,5 +1,8 @@
 package friendy.community.domain.post.service;
 
+import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.hashtag.service.HashtagService;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
@@ -26,6 +29,8 @@ public class PostService {
     private final HashtagService hashtagService;
     private final PostImageService postImageService;
     private final MemberService memberService;
+    private final CommentService commentService;
+    private final CommentRepository commentRepository;
 
     public long savePost(final PostCreateRequest request, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
@@ -62,6 +67,10 @@ public class PostService {
 
         final Post post = validatePostExistence(postId);
         validatePostAuthor(member, post);
+
+        List<Comment> comments = commentRepository.findAllByPost(post);
+        for (Comment c : comments)
+            commentService.deleteComment(c.getId());
 
         postImageService.deleteImagesForPost(post);
         hashtagService.deleteHashtags(postId);
