@@ -1,7 +1,5 @@
 package friendy.community.domain.comment.service;
 
-import friendy.community.domain.auth.dto.request.LoginRequest;
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
@@ -16,6 +14,7 @@ import friendy.community.domain.member.service.MemberService;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
+import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
@@ -36,7 +35,6 @@ import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TO
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
-import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 @SpringBootTest
 @Transactional
@@ -53,6 +51,8 @@ public class CommentServiceTest {
     private MemberService memberService;
     @Autowired
     private PostService postService;
+    @Autowired
+    private PostRepository postRepository;
     @Autowired
     private EntityManager entityManager;
 
@@ -239,5 +239,62 @@ public class CommentServiceTest {
                 .isInstanceOf(FriendyException.class)
                 .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+    }
+
+    @Test
+    @DisplayName("댓글 삭제에 성공하면 부모 게시글의 댓글 개수가 1 감소한다.")
+    void deleteCommentSuccessfullyDecreasesCommentCountOfParentPost() {
+        // Given
+        createComment();
+
+        // When
+        commentService.deleteComment(1L, httpServletRequest);
+
+        // Then
+        List<Comment> comments = commentRepository.findAll();
+        List<Post> posts = postRepository.findAll();
+        assertThat(comments.size()).isEqualTo(0);
+        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("답글이 달려있는 댓글을 삭제하면 해당 댓글과 답글이 모두 삭제된다.")
+    void deleteCommentWithRepliesSuccessfullyDeletesAllOfThem() {
+        // Given
+        createComment();
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("new valid reply", 1L, 1L);
+        commentService.saveReply(replyCreateRequest, httpServletRequest);
+        Comment savedComment = commentRepository.findAll().getFirst();
+        Reply savedReply = replyRepository.findAll().getFirst();
+
+        // When
+        commentService.deleteComment(savedComment.getId(), httpServletRequest);
+
+        // Then
+        List<Comment> comments = commentRepository.findAll();
+        List<Reply> replies = replyRepository.findAll();
+        List<Post> posts = postRepository.findAll();
+        assertThat(comments.size()).isEqualTo(0);
+        assertThat(replies.size()).isEqualTo(0);
+        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("답글 삭제에 성공하면 부모 댓글의 답글 수가 1 감소한다.")
+    void deleteReplySuccessfullyDecreasesReplyCountOfParentComment() {
+        // When
+        createComment();
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("new valid reply", 1L, 1L);
+        commentService.saveReply(replyCreateRequest, httpServletRequest);
+        Reply savedReply = replyRepository.findAll().getFirst();
+
+        // When
+        commentService.deleteReply(savedReply.getId(), httpServletRequest);
+
+        // Then
+        List<Comment> comments = commentRepository.findAll();
+        List<Reply> replies = replyRepository.findAll();
+        assertThat(replies.size()).isEqualTo(0);
+        assertThat(comments.getFirst().getReplyCount()).isEqualTo(0);
     }
 }

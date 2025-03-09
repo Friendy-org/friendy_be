@@ -3,6 +3,9 @@ package friendy.community.domain.post.service;
 import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.comment.model.Comment;
+import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.hashtag.service.HashtagService;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
@@ -36,6 +39,8 @@ public class PostService {
     private final AuthService authService;
     private final HashtagService hashtagService;
     private final PostImageService postImageService;
+    private final CommentService commentService;
+    private final CommentRepository commentRepository;
 
     public long savePost(final PostCreateRequest request, final HttpServletRequest httpServletRequest) {
         final Member member = getMemberFromRequest(httpServletRequest);
@@ -70,6 +75,10 @@ public class PostService {
         final Member member = getMemberFromRequest(httpServletRequest);
         final Post post = validatePostExistence(postId);
         validatePostAuthor(member, post);
+
+        List<Comment> comments = commentRepository.findAllByPost(post);
+        for (Comment c : comments)
+            commentService.deleteComment(c.getId(), httpServletRequest);
 
         postImageService.deleteImagesForPost(post);
         hashtagService.deleteHashtags(postId);
