@@ -66,4 +66,8 @@ public class Post extends BaseEntity {
     public void updatePost(final PostUpdateRequest postUpdateRequest) {
         this.content = postUpdateRequest.content();
     }
+
+    public void updateCommentCount(final Integer commentCount) {
+        this.commentCount = commentCount;
+    }
 }
