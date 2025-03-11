@@ -5,6 +5,7 @@ import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.hashtag.service.HashtagService;
 import friendy.community.domain.member.model.Member;
+import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
@@ -20,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,9 +39,15 @@ public class PostService {
     private final AuthService authService;
     private final HashtagService hashtagService;
     private final PostImageService postImageService;
+    private final MemberRepository memberRepository;
 
     public long savePost(final PostCreateRequest request, final HttpServletRequest httpServletRequest) {
-        final Member member = getMemberFromRequest(httpServletRequest);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = (String) authentication.getPrincipal(); // 이메일 (Principal은 보통 사용자 정보를 포함)
+
+        final Member member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "없음"));
+
         final Post post = Post.of(request, member);
 
         if (request.imageUrls() != null) {
