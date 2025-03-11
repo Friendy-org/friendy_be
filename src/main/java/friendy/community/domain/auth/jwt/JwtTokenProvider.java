@@ -86,7 +86,7 @@ public class JwtTokenProvider {
         redisTemplate.delete(email);
     }
 
-    private void validateRefreshToken(final String token) {
+    public void validateRefreshToken(final String token) {
         try {
             final Claims claims = getRefreshTokenParser().parseClaimsJws(token).getBody();
         } catch (MalformedJwtException | UnsupportedJwtException e) {
@@ -129,7 +129,7 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    private void saveRefreshToken(final String email, final String refreshToken) {
+    public void saveRefreshToken(final String email, final String refreshToken) {
         redisTemplate.opsForValue().set(
                 email,
                 refreshToken,
