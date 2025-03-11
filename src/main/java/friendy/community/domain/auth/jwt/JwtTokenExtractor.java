@@ -19,8 +19,7 @@ public class JwtTokenExtractor {
         if (StringUtils.hasText(accessToken) && accessToken.startsWith(PREFIX_BEARER)) {
             return accessToken.substring(PREFIX_BEARER.length());
         }
-        final String logMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : " + accessToken;
-        throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+        return null; // 토큰이 없으면 null 반환 (예외 던지지 않음)
     }
 
     public String extractRefreshToken(final HttpServletRequest request) {
