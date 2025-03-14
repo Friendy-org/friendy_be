@@ -7,6 +7,7 @@ public class TokenFixtures {
      */
     public static final String CORRECT_ACCESS_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.I5Y8zaMf6ys1X3ESNzVK3HzH7mJFquPwiyAnmiH4RQg";
     public static final String CORRECT_REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.I5Y8zaMf6ys1X3ESNzVK3HzH7mJFquPwiyAnmiH4RQg";
+    public static final String CORRECT_ACCESS_TOKEN_WITHOUT_BEARER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.I5Y8zaMf6ys1X3ESNzVK3HzH7mJFquPwiyAnmiH4RQg";
 
     /**
      * OTHER_USER_TOKEN
@@ -21,6 +22,9 @@ public class TokenFixtures {
 
     public static final String EXPIRED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDEwMH0.mqOL2LPVIqTlrjqAWElM5XsJMgTjxWsEpOkr0atIdKs";
 
+    public static final String ACCESS_TOKEN_WITHOUT_EMAIL = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlU3ViamVjdCIsInNvbWVJbnB1dCI6InNvbWVWaWx1ZSJ9.yE4xFsm_BxgU8-TPSbCqD8wPTI9nkvSjb7dfA0RgkHg";
+
+    public static final String UNSUPPORTED_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.invalidsignature";
     /**
      * MISSING_CLAIM_TOKEN : 만료 기한 - 2123년 10월 30일
      */
