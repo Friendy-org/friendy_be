@@ -19,18 +19,15 @@ import java.util.concurrent.TimeUnit;
 public class JwtTokenProvider {
 
     private final String EMAIL_KEY = "email";
-
+    private final StringRedisTemplate redisTemplate;
     @Value("${jwt.access.secret}")
     private String jwtAccessTokenSecret;
     @Value("${jwt.access.expiration}")
     private long jwtAccessTokenExpirationInMs;
-
     @Value("${jwt.refresh.secret}")
     private String jwtRefreshTokenSecret;
     @Value("${jwt.refresh.expiration}")
     private long jwtRefreshTokenExpirationInMs;
-
-    private final StringRedisTemplate redisTemplate;
 
     public String generateAccessToken(final String email) {
         final SecretKey secretKey = new SecretKeySpec(jwtAccessTokenSecret.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
@@ -47,7 +44,6 @@ public class JwtTokenProvider {
     }
 
     public String extractEmailFromAccessToken(final String token) {
-        validateAccessToken(token);
         final Jws<Claims> claimsJws = getAccessTokenParser().parseClaimsJws(token);
         final String extractedEmail = claimsJws.getBody().get(EMAIL_KEY, String.class);
         if (extractedEmail == null) {
@@ -73,11 +69,11 @@ public class JwtTokenProvider {
         try {
             final Claims claims = getAccessTokenParser().parseClaimsJws(token).getBody();
         } catch (MalformedJwtException | UnsupportedJwtException e) {
-            final String logMessage = "인증 실패(잘못된 액세스 토큰) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new FriendyException(ErrorCode.INVALID_TOKEN, "유효하지 않은 JWT 토큰 형식입니다.");
         } catch (ExpiredJwtException e) {
-            final String logMessage = "인증 실패(만료된 액세스 토큰) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new FriendyException(ErrorCode.EXPIRED_TOKEN, "만료된 토큰입니다.");
+        } catch (JwtException e) {
+            throw new FriendyException(ErrorCode.INVALID_TOKEN, "JWT 토큰 검증 중 오류가 발생했습니다.");
         }
     }
 
@@ -110,32 +106,31 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + tokenExpirationInMs);
 
         return Jwts.builder()
-                .claim(EMAIL_KEY, email)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(secretKey)
-                .compact();
+            .claim(EMAIL_KEY, email)
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(secretKey)
+            .compact();
     }
 
     private JwtParser getAccessTokenParser() {
         return Jwts.parserBuilder()
-                .setSigningKey(jwtAccessTokenSecret.getBytes(StandardCharsets.UTF_8))
-                .build();
+            .setSigningKey(jwtAccessTokenSecret.getBytes(StandardCharsets.UTF_8))
+            .build();
     }
 
     private JwtParser getRefreshTokenParser() {
         return Jwts.parserBuilder()
-                .setSigningKey(jwtRefreshTokenSecret.getBytes(StandardCharsets.UTF_8))
-                .build();
+            .setSigningKey(jwtRefreshTokenSecret.getBytes(StandardCharsets.UTF_8))
+            .build();
     }
 
     public void saveRefreshToken(final String email, final String refreshToken) {
         redisTemplate.opsForValue().set(
-                email,
-                refreshToken,
-                jwtRefreshTokenExpirationInMs,
-                TimeUnit.MILLISECONDS
+            email,
+            refreshToken,
+            jwtRefreshTokenExpirationInMs,
+            TimeUnit.MILLISECONDS
         );
     }
-
 }
