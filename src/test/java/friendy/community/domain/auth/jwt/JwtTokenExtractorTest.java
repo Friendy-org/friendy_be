@@ -47,20 +47,6 @@ class JwtTokenExtractorTest {
     }
 
     @Test
-    @DisplayName("액세스 토큰이 잘못된 형식이면 예외를 발생시킨다")
-    void throwExceptionForInvalidAccessTokenFormat() {
-        // given
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        String token = "InvalidToken123";
-        request.addHeader("Authorization", token);
-
-        // when & then
-        assertThatThrownBy(() -> jwtTokenExtractor.extractAccessToken(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(액세스 토큰 추출 실패) - 토큰 : " + token);
-    }
-
-    @Test
     @DisplayName("리프레시 토큰이 잘못된 형식이면 예외를 발생시킨다")
     void throwExceptionForInvalidRefreshTokenFormat() {
         // given
@@ -75,15 +61,31 @@ class JwtTokenExtractorTest {
     }
 
     @Test
-    @DisplayName("액세스 토큰이 null이거나 빈 값이면 예외를 발생시킨다")
-    void throwExceptionWhenAccessTokenIsNullOrEmpty() {
+    @DisplayName("액세스 토큰이 null이면 null을 반환한다")
+    void throwExceptionWhenAccessTokenIsNull() {
         // given
         MockHttpServletRequest request = new MockHttpServletRequest();
 
-        // when & then
-        assertThatThrownBy(() -> jwtTokenExtractor.extractAccessToken(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(액세스 토큰 추출 실패) - 토큰 : null");
+        // when
+        String token = jwtTokenExtractor.extractAccessToken(request);
+
+        // then
+        assertThat(token).isNull();
+    }
+
+    @Test
+    @DisplayName("액세스 토큰이 'Bearer '로 시작하지 않으면 null을 반환한다")
+    void throwExceptionWhenAccessTokenFormatIsInvalid() {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        String token = "InvalidToken";
+        request.addHeader("Authorization", token);
+
+        // when
+        String accessToken = jwtTokenExtractor.extractAccessToken(request);
+
+        // then
+        assertThat(accessToken).isNull();
     }
 
     @Test
