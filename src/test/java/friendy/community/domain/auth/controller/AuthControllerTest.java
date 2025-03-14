@@ -2,14 +2,13 @@ package friendy.community.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.domain.auth.dto.request.LoginRequest;
-import friendy.community.domain.auth.jwt.JwtTokenProvider;
-import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.auth.dto.response.TokenResponse;
 import friendy.community.domain.auth.jwt.JwtTokenExtractor;
+import friendy.community.domain.auth.jwt.JwtTokenFilter;
+import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
-import friendy.community.domain.member.fixture.MemberFixture;
-import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.repository.MemberRepository;
+import friendy.community.global.config.MockSecurityConfig;
+import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,41 +18,40 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static friendy.community.domain.auth.fixtures.TokenFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
+@WebMvcTest(controllers = AuthController.class,
+    excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)
+    })
+@Import(MockSecurityConfig.class)
 class AuthControllerTest {
 
+    private final ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockitoBean
     private AuthService authService;
-
     @MockitoBean
     private JwtTokenExtractor jwtTokenExtractor;
-
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
-
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     @DisplayName("로그인 요청이 성공적으로 처리되면 200 OK와 함께 토큰 헤더가 반환된다")
@@ -66,12 +64,12 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(loginRequest)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
-                .andExpect(header().string("Authorization-Refresh", "Bearer refreshToken"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(loginRequest)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+            .andExpect(header().string("Authorization-Refresh", "Bearer refreshToken"));
     }
 
     @Test
@@ -81,16 +79,16 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest("nonexistent@example.com", "password123!");
 
         when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."));
+            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."));
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(result ->
-                        assertThat(result.getResolvedException().getMessage())
-                                .contains("해당 이메일의 회원이 존재하지 않습니다."));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(result ->
+                assertThat(result.getResolvedException().getMessage())
+                    .contains("해당 이메일의 회원이 존재하지 않습니다."));
     }
 
     @Test
@@ -100,16 +98,16 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest("example@friendy.com", "password123!");
 
         when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_PASSWORD, "로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
+            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_PASSWORD, "로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(result ->
-                        assertThat(result.getResolvedException().getMessage())
-                                .contains("로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(result ->
+                assertThat(result.getResolvedException().getMessage())
+                    .contains("로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
     }
 
     @Test
@@ -120,10 +118,10 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -134,10 +132,10 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -148,18 +146,18 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest
     @DisplayName("비밀번호가 숫자, 영문자, 특수문자를 포함하지 않으면 400 Bad Request를 반환한다")
     @CsvSource({
-            "example@friendy.com, simplepassword, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다.",
-            "example@friendy.com, password123, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다.",
-            "example@friendy.com, 12345678, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다."
+        "example@friendy.com, simplepassword, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다.",
+        "example@friendy.com, password123, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다.",
+        "example@friendy.com, 12345678, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다."
     })
     void loginWithInvalidPasswordPatternReturns400BadRequest(String email, String password, String expectedMessage) throws Exception {
         // Given
@@ -167,18 +165,18 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertThat(result.getResolvedException().getMessage()).contains(expectedMessage));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(result -> assertThat(result.getResolvedException().getMessage()).contains(expectedMessage));
     }
 
     @ParameterizedTest
     @DisplayName("비밀번호가 길이 제한을 벗어나면 400 Bad Request를 반환한다")
     @CsvSource({
-            "example@friendy.com, short, 비밀번호는 8~16자 사이로 입력해주세요.",
-            "example@friendy.com, thispasswordiswaytoolong123!, 비밀번호는 8~16자 사이로 입력해주세요."
+        "example@friendy.com, short, 비밀번호는 8~16자 사이로 입력해주세요.",
+        "example@friendy.com, thispasswordiswaytoolong123!, 비밀번호는 8~16자 사이로 입력해주세요."
     })
     void loginWithInvalidPasswordLengthReturns400BadRequest(String email, String password, String expectedMessage) throws Exception {
         // Given
@@ -186,11 +184,11 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertThat(result.getResolvedException().getMessage()).contains(expectedMessage));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(result -> assertThat(result.getResolvedException().getMessage()).contains(expectedMessage));
     }
 
     @Test
@@ -202,12 +200,12 @@ class AuthControllerTest {
         request.addHeader("Authorization", accessToken);
 
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
-                .thenReturn("accessToken");
+            .thenReturn("accessToken");
 
         mockMvc.perform(post("/auth/logout")
-                        .header("Authorization", accessToken))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .header("Authorization", accessToken))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -219,18 +217,18 @@ class AuthControllerTest {
         request.addHeader("Authorization-Refresh", "Bearer refreshToken");
 
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
-                .thenReturn("refreshToken");
+            .thenReturn("refreshToken");
 
         TokenResponse tokenResponse = TokenResponse.of("newAccessToken", "newRefreshToken");
         when(authService.reissueToken("refreshToken")).thenReturn(tokenResponse);
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
-                        .header("Authorization-Refresh", refreshToken))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer newAccessToken"))
-                .andExpect(header().string("Authorization-Refresh", "Bearer newRefreshToken"));
+                .header("Authorization-Refresh", refreshToken))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer newAccessToken"))
+            .andExpect(header().string("Authorization-Refresh", "Bearer newRefreshToken"));
     }
 
     @Test
@@ -242,18 +240,18 @@ class AuthControllerTest {
         request.addHeader("Authorization-Refresh", refreshToken);
 
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
-                .thenReturn("invalidRefreshToken");
+            .thenReturn("invalidRefreshToken");
 
         when(authService.reissueToken("invalidRefreshToken"))
-                .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
+            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
-                        .header("Authorization-Refresh", refreshToken))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                        .contains("인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
+                .header("Authorization-Refresh", refreshToken))
+            .andDo(print())
+            .andExpect(status().isUnauthorized())
+            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
+                .contains("인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
     }
 
     @Test
@@ -263,18 +261,18 @@ class AuthControllerTest {
         String refreshToken = "Bearer expiredRefreshToken";
 
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
-                .thenReturn("expiredRefreshToken");
+            .thenReturn("expiredRefreshToken");
 
         when(authService.reissueToken("expiredRefreshToken"))
-                .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
+            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
-                        .header("Authorization-Refresh", refreshToken))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                        .contains("인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
+                .header("Authorization-Refresh", refreshToken))
+            .andDo(print())
+            .andExpect(status().isUnauthorized())
+            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
+                .contains("인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
     }
 
     @Test
@@ -284,18 +282,18 @@ class AuthControllerTest {
         String refreshToken = "Bearer missingEmailClaimToken";
 
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
-                .thenReturn("missingEmailClaimToken");
+            .thenReturn("missingEmailClaimToken");
 
         when(authService.reissueToken("missingEmailClaimToken"))
-                .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
+            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
-                        .header("Authorization-Refresh", refreshToken))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                        .contains("인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
+                .header("Authorization-Refresh", refreshToken))
+            .andDo(print())
+            .andExpect(status().isUnauthorized())
+            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
+                .contains("인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
     }
 
     @Test
@@ -306,9 +304,8 @@ class AuthControllerTest {
 
         // When & Then
         mockMvc.perform(post("/auth/withdrawal")
-                        .header("Authorization", accessToken))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .header("Authorization", accessToken))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
-
 }
