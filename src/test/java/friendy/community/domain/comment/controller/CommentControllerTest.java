@@ -1,35 +1,64 @@
 package friendy.community.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
-import jakarta.servlet.http.HttpServletRequest;
+import friendy.community.global.config.MockSecurityConfig;
+import friendy.community.global.config.SecurityConfig;
+import friendy.community.global.security.FriendyUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = CommentController.class)
+@WebMvcTest(controllers = CommentController.class,
+    excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)
+    })
+@Import(MockSecurityConfig.class)
 public class CommentControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockitoBean
     private CommentService commentService;
+
+    @BeforeEach
+    void setUp() {
+        FriendyUserDetails userDetails = new FriendyUserDetails(
+            1L,
+            "user@example.com",
+            "password123",
+            Collections.emptyList()
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     @Test
     @DisplayName("댓글 생성 성공 시 200 Ok를 응답")
@@ -39,10 +68,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -53,10 +82,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -67,10 +96,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -81,10 +110,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -95,10 +124,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments/reply")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -109,10 +138,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments/reply")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -123,10 +152,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments/reply")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -137,10 +166,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments/reply")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -151,10 +180,10 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(post("/comments/reply")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -164,14 +193,14 @@ public class CommentControllerTest {
         Long commentId = 1L;
         CommentUpdateRequest updateRequest = new CommentUpdateRequest("edited valid content");
 
-        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), any(HttpServletRequest.class));
+        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), anyLong());
 
         // When & Then
         mockMvc.perform(post("/comments/{commentId}", commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -181,14 +210,14 @@ public class CommentControllerTest {
         Long commentId = 1L;
         CommentUpdateRequest updateRequest = new CommentUpdateRequest("");
 
-        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), any(HttpServletRequest.class));
+        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), anyLong());
 
         // When & Then
         mockMvc.perform(post("/comments/{commentId}", commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -198,14 +227,14 @@ public class CommentControllerTest {
         Long commentId = 1L;
         CommentUpdateRequest updateRequest = new CommentUpdateRequest("a".repeat(1200));
 
-        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), any(HttpServletRequest.class));
+        doNothing().when(commentService).updateComment(any(CommentUpdateRequest.class), eq(commentId), anyLong());
 
         // When & Then
         mockMvc.perform(post("/comments/{commentId}", commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andDo(print())
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -215,13 +244,13 @@ public class CommentControllerTest {
         Long replyId = 1L;
         CommentUpdateRequest updateRequest = new CommentUpdateRequest("new valid content");
 
-        doNothing().when(commentService).updateReply(any(CommentUpdateRequest.class), eq(replyId), any(HttpServletRequest.class));
+        doNothing().when(commentService).updateReply(any(CommentUpdateRequest.class), eq(replyId), anyLong());
 
         // When & Then
         mockMvc.perform(post("/comments/reply/{replyId}", replyId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updateRequest)))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 }
