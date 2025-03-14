@@ -4,6 +4,7 @@ import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -31,8 +33,8 @@ public interface SpringDocPostController {
 
     })
     ResponseEntity<Void> createPost(
-            HttpServletRequest httpServletRequest,
-            @RequestBody PostCreateRequest postRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @RequestBody PostCreateRequest postRequest
     );
 
     @Operation(summary = "게시글 수정", description = "기존 게시글을 수정합니다.")
@@ -54,7 +56,7 @@ public interface SpringDocPostController {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<Void> updatePost(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest
     );
@@ -76,7 +78,7 @@ public interface SpringDocPostController {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<Void> deletePost(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long postId
     );
 
