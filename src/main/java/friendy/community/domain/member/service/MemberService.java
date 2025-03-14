@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository  memberRepository;
+    private final MemberRepository memberRepository;
     private final SaltGenerator saltGenerator;
     private final PasswordEncryptor passwordEncryptor;
     private final JwtTokenExtractor jwtTokenExtractor;
@@ -85,7 +85,12 @@ public class MemberService {
 
     public Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 회원입니다."));
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 회원입니다."));
+    }
+
+    public Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 이메일입니다."));
     }
 
     private boolean isCurrentUser(Member member, String email) {
@@ -96,16 +101,6 @@ public class MemberService {
         String imageUrl = s3service.moveS3Object(request.imageUrl(), "profile");
         String s3Key = s3service.extractFilePath(imageUrl);
         String fileType = s3service.getContentTypeFromS3(s3Key);
-        return MemberImage.of(imageUrl, s3Key ,fileType);
+        return MemberImage.of(imageUrl, s3Key, fileType);
     }
-    public String findMemberIdByEmail(String email) {
-        // 이메일을 기준으로 멤버 찾기
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "회원이 존재하지 않습니다."));
-
-        // 멤버의 ID 반환
-        return String.valueOf(member.getId());
-    }
-
-
 }
