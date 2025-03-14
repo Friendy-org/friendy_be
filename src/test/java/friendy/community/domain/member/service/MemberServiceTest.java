@@ -30,6 +30,7 @@ import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCES
 import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -37,18 +38,11 @@ import static org.mockito.Mockito.*;
 @DirtiesContext
 class MemberServiceTest {
 
-
     @Autowired
     private MemberRepository memberRepository;
 
     @MockitoBean
     private S3service s3Service;
-
-    @Autowired
-    private SaltGenerator saltGenerator;
-
-    @Autowired
-    private PasswordEncryptor passwordEncryptor;
 
     @Autowired
     private AuthService authService;
@@ -74,12 +68,12 @@ class MemberServiceTest {
     void signUpSuccessfullyReturnsMemberId() {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(
-                "test@email.com", "testNickname", "password123!",  LocalDate.parse("2002-08-13"),null
+            "test@email.com", "testNickname", "password123!", LocalDate.parse("2002-08-13"), null
         );
         // When
         Long memberId = memberService.signUp(request);
         // Then
-        assertThat(memberId).isEqualTo(1L); 
+        assertThat(memberId).isEqualTo(1L);
     }
 
     @Test
@@ -90,9 +84,9 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueEmail(savedMember.getEmail()))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("이미 가입된 이메일입니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("이미 가입된 이메일입니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
     }
 
     @Test
@@ -103,9 +97,9 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueName(savedMember.getNickname()))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("닉네임이 이미 존재합니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("닉네임이 이미 존재합니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
     }
 
     @Test
@@ -133,8 +127,8 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.resetPassword(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 이메일의 회원이 존재하지 않습니다.");
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("해당 이메일의 회원이 존재하지 않습니다.");
     }
 
     @Test
@@ -142,8 +136,8 @@ class MemberServiceTest {
     void signUpwithimageSuccessfullyReturnsMemberId() {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(
-                "test@email.com", "testNickname", "password123!",  LocalDate.parse("2002-08-13"),
-                "https://test.s3.us-east-2.amazonaws.com/temp/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg"
+            "test@email.com", "testNickname", "password123!", LocalDate.parse("2002-08-13"),
+            "https://test.s3.us-east-2.amazonaws.com/temp/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg"
         );
         String expectedImageUrl = "https://test.s3.us-east-2.amazonaws.com/profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
         String expectedFilePath = "profile/5f48c9c9-76eb-4309-8fe5-a2f31d9e0d53.jpg";
@@ -188,9 +182,9 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.getMember(httpServletRequest, nonExistentMemberId))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 회원입니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("존재하지 않는 회원입니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     @Test
@@ -225,5 +219,31 @@ class MemberServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(savedMember.getId());
         assertThat(response.me()).isFalse();
+    }
+
+    @Test
+    @DisplayName("이메일로 멤버를 조회하여 존재하는 경우 반환한다")
+    void findMemberByEmail_MemberExists() {
+        // Given
+        Member member = memberRepository.save(MemberFixture.memberFixture());
+
+        // When
+        Member foundMember = memberService.findMemberByEmail(member.getEmail());
+
+        // Then
+        assertThat(foundMember).isNotNull();
+        assertThat(foundMember.getEmail()).isEqualTo(member.getEmail());
+    }
+
+    @Test
+    @DisplayName("이메일로 멤버를 조회하여 존재하지 않는 경우 예외를 발생시킨다")
+    void findMemberByEmail_MemberNotFound() {
+        // given
+        String email = "nonexistent@example.com";
+
+        // when & then
+        FriendyException exception = assertThrows(FriendyException.class, () -> memberService.findMemberByEmail(email));
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 이메일입니다.");
     }
 }
