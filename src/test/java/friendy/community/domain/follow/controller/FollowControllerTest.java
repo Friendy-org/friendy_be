@@ -1,12 +1,24 @@
 package friendy.community.domain.follow.controller;
 
+import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.service.FollowService;
+import friendy.community.domain.post.controller.PostController;
+import friendy.community.global.config.MockSecurityConfig;
+import friendy.community.global.config.SecurityConfig;
+import friendy.community.global.security.FriendyUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,7 +33,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(controllers = FollowController.class)
+@WebMvcTest(controllers = FollowController.class,
+    excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)
+    })
+@Import(MockSecurityConfig.class)
 class FollowControllerTest {
 
     @Autowired
@@ -29,6 +46,19 @@ class FollowControllerTest {
 
     @MockitoBean
     private FollowService followService;
+
+    @BeforeEach
+    void setUp() {
+        FriendyUserDetails userDetails = new FriendyUserDetails(
+            1L,
+            "user@example.com",
+            "password123",
+            Collections.emptyList()
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     @Test
     @DisplayName("팔로우 API 성공")
