@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -29,7 +31,14 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         "/auth/**",
         "/signup/**",
-        "/h2-console/**"
+        "/h2-console/**",
+        "/email/**",
+        "/file/**",
+        "/follow/following/**",
+        "/follow/follower/**"
+    );
+    private static final List<String> PERMIT_GET_URLS = List.of(
+        "/posts/**"
     );
     @Autowired
     private final JwtTokenFilter jwtTokenFilter;
@@ -42,6 +51,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, PERMIT_GET_URLS.toArray(new String[0])).permitAll()
                 .requestMatchers(PERMIT_URLS.toArray(new String[0])).permitAll()
                 .anyRequest().authenticated()
             )
