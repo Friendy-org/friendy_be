@@ -1,7 +1,12 @@
 package friendy.community.domain.auth.jwt;
 
 import friendy.community.domain.auth.service.AuthService;
+import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import org.assertj.core.data.Percentage;
 import org.hamcrest.number.IsCloseTo;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -58,27 +65,32 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    @DisplayName("잘못된 형식의 엑세스 토큰에서 이메일 추출 시 예외를 발생시킨다")
-    void throwExceptionForMalformedAccessTokenEmailExtraction() {
-        // given
-        String malFormedJwtToken = MALFORMED_JWT_TOKEN;
-
-        // when & then
-        assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromAccessToken(malFormedJwtToken))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(잘못된 액세스 토큰) - 토큰 : " + malFormedJwtToken);
+    @DisplayName("엑세스토큰 유효성 검사 통과")
+    void validateAccessTokenSuccessfully() {
+        jwtTokenProvider.validateAccessToken(CORRECT_ACCESS_TOKEN_WITHOUT_BEARER);
     }
 
     @Test
-    @DisplayName("만료된 엑세스 토큰에서 이메일 추출 시 예외를 발생시킨다")
-    void throwExceptionForExpiredAccessTokenEmailExtraction() {
-        // given
-        String expiredAccessToken = EXPIRED_TOKEN;
+    @DisplayName("엑세스토큰 예외")
+    void validateAccessToken_ShouldThrowCorrectException() {
+        // When & Then
+        FriendyException exception = assertThrows(FriendyException.class, () -> {
+            jwtTokenProvider.validateAccessToken(MALFORMED_JWT_TOKEN);
+        });
+        assertEquals(ErrorCode.INVALID_TOKEN, exception.getErrorCode());
+        assertEquals("유효하지 않은 JWT 토큰 형식입니다.", exception.getMessage());
 
-        // when & then
-        assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromAccessToken(expiredAccessToken))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(만료된 액세스 토큰) - 토큰 : " + expiredAccessToken);
+        exception = assertThrows(FriendyException.class, () -> {
+            jwtTokenProvider.validateAccessToken(UNSUPPORTED_JWT_TOKEN);
+        });
+        assertEquals(ErrorCode.INVALID_TOKEN, exception.getErrorCode());
+        assertEquals("JWT 토큰 검증 중 오류가 발생했습니다.", exception.getMessage());
+
+        exception = assertThrows(FriendyException.class, () -> {
+            jwtTokenProvider.validateAccessToken(EXPIRED_TOKEN);
+        });
+        assertEquals(ErrorCode.EXPIRED_TOKEN, exception.getErrorCode());
+        assertEquals("만료된 토큰입니다.", exception.getMessage());
     }
 
     @Test
