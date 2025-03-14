@@ -16,12 +16,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
-import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
@@ -41,17 +39,15 @@ class FollowServiceTest {
     @Autowired
     private EntityManager entityManager;
 
-    private MockHttpServletRequest httpServletRequest;
+    private Member member;
 
     @BeforeEach
     void setup() {
         resetMemberIdSequence();
-        httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
 
-        Member member = MemberFixture.memberFixture();
-        memberService.signUp(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
-
+        member = MemberFixture.memberFixture();
+        Long memberId = memberService.signUp(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+        member = memberService.findMemberById(memberId);
     }
 
     private void resetMemberIdSequence() {
@@ -67,7 +63,7 @@ class FollowServiceTest {
         Member follower = memberRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         // When
-        followService.follow(httpServletRequest, following.getId());
+        followService.follow(follower.getId(), following.getId());
 
         //Then
         boolean exists = followRepository.existsByFollowerAndFollowing(follower, following);
@@ -80,12 +76,10 @@ class FollowServiceTest {
         // Given
         List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(1));
         Member following = savedMembers.getFirst();
-        followService.follow(httpServletRequest, following.getId());
+        followService.follow(member.getId(), following.getId());
 
         // When & Then
-        assertThatThrownBy(() -> followService.follow(httpServletRequest, following.getId()))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("이미 팔로우한 회원입니다.");
+        assertThatThrownBy(() -> followService.follow(member.getId(), following.getId())).isInstanceOf(FriendyException.class).hasMessageContaining("이미 팔로우한 회원입니다.");
     }
 
     @Test
@@ -93,13 +87,12 @@ class FollowServiceTest {
     void unfollowSuccess() {
         // Given
         List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(1));
-        Member follower = memberRepository.findById(1L)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Member follower = memberRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         Member following = savedMembers.getFirst();
-        followService.follow(httpServletRequest, following.getId());
+        followService.follow(follower.getId(), following.getId());
 
         // When
-        followService.unfollow(httpServletRequest, following.getId());
+        followService.unfollow(follower.getId(), following.getId());
 
         // Then
         assertThat(followRepository.existsByFollowerAndFollowing(follower, following)).isFalse();
@@ -113,9 +106,7 @@ class FollowServiceTest {
         Member following = savedMembers.getFirst();
 
         // When & Then
-        assertThatThrownBy(() -> followService.unfollow(httpServletRequest, following.getId()))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("팔로우하지 않은 회원입니다.");
+        assertThatThrownBy(() -> followService.unfollow(member.getId(), following.getId())).isInstanceOf(FriendyException.class).hasMessageContaining("팔로우하지 않은 회원입니다.");
     }
 
     @Test
@@ -214,33 +205,21 @@ class FollowServiceTest {
         Long nonExistentMemberId = 999L;
 
         // When & Then
-        assertThatThrownBy(() -> followService.getFollowingMembers(nonExistentMemberId, 0L, 10))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowingMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
 
-        assertThatThrownBy(() -> followService.getFollowerMembers(nonExistentMemberId, 0L, 10))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowerMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("팔로우 및 팔로우 수 조회 예외 - 존재하지 않는 회원 또는 자기 자신")
     void followExceptionInvalidMember() {
         // When & Then
-        assertThatThrownBy(() -> followService.follow(httpServletRequest, 1L))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("자기 자신을 대상으로 수행할 수 없습니다.");
+        assertThatThrownBy(() -> followService.follow(member.getId(), 1L)).isInstanceOf(FriendyException.class).hasMessageContaining("자기 자신을 대상으로 수행할 수 없습니다.");
 
-        assertThatThrownBy(() -> followService.follow(httpServletRequest, 999L))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.follow(member.getId(), 999L)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
 
-        assertThatThrownBy(() -> followService.getFollowerCount(999L))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowerCount(999L)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
 
-        assertThatThrownBy(() -> followService.getFollowingCount(999L))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowingCount(999L)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
     }
 }

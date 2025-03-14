@@ -107,6 +107,8 @@ public class CommentServiceTest {
     void createReplySuccesfullyReturnsReplyId() {
         // Given
         createComment();
+
+        // Given
         ReplyCreateRequest request = new ReplyCreateRequest("new valid reply contents", 1L, 1L);
 
         // When
