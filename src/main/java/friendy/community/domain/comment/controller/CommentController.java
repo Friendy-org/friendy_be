@@ -4,13 +4,12 @@ import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
-import jakarta.servlet.http.HttpServletRequest;
+import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,29 +20,29 @@ public class CommentController implements SpringDocCommentController {
 
     @PostMapping()
     public ResponseEntity<Void> createComment(
-            HttpServletRequest httpServletRequest,
-            @Valid @RequestBody CommentCreateRequest commentRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @Valid @RequestBody CommentCreateRequest commentRequest
     ) {
-        commentService.saveComment(commentRequest, httpServletRequest);
+        commentService.saveComment(commentRequest, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/reply")
     public ResponseEntity<Void> createReply(
-            HttpServletRequest httpServletRequest,
-            @Valid @RequestBody ReplyCreateRequest replyRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @Valid @RequestBody ReplyCreateRequest replyRequest
     ) {
-        commentService.saveReply(replyRequest, httpServletRequest);
+        commentService.saveReply(replyRequest, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{commentId}")
     public ResponseEntity<Void> updateComment(
-            HttpServletRequest httpServletRequest,
-            @PathVariable Long commentId,
-            @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long commentId,
+        @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
-        commentService.updateComment(commentUpdateRequest, commentId, httpServletRequest);
+        commentService.updateComment(commentUpdateRequest, commentId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 
