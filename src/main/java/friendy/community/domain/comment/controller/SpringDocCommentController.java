@@ -3,6 +3,7 @@ package friendy.community.domain.comment.controller;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -32,7 +34,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다.")
     })
     ResponseEntity<Void> createComment(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @RequestBody CommentCreateRequest commentRequest
     );
 
@@ -52,7 +54,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<Void> updateComment(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
     );
@@ -75,7 +77,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<Void> createReply(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @RequestBody ReplyCreateRequest replyRequest
     );
 
@@ -95,7 +97,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 답글 id", exampleMessage = "존재하지 않는 답글입니다.")
     })
     ResponseEntity<Void> updateReply(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
     );
