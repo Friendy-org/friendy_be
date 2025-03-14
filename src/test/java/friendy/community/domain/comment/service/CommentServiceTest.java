@@ -1,7 +1,5 @@
 package friendy.community.domain.comment.service;
 
-import friendy.community.domain.auth.dto.request.LoginRequest;
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
@@ -26,17 +24,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
-import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 @SpringBootTest
 @Transactional
@@ -56,7 +50,6 @@ public class CommentServiceTest {
     @Autowired
     private EntityManager entityManager;
 
-    private MockHttpServletRequest httpServletRequest;
     private Member member;
 
     @BeforeEach
@@ -64,27 +57,27 @@ public class CommentServiceTest {
         resetDataBase();
 
         member = MemberFixture.memberFixture();
-        memberService.signUp(new MemberSignUpRequest(
-                member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+        Long memberId = memberService.signUp(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
 
-        httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
+        member = memberService.findMemberById(memberId);
 
         Post post = PostFixture.postFixture();
-        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null), httpServletRequest);
+        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null), member.getId());
     }
 
     private void resetDataBase() {
         commentRepository.deleteAll();
         replyRepository.deleteAll();
+        entityManager.createNativeQuery("ALTER TABLE member AUTO_INCREMENT = 1").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE post AUTO_INCREMENT = 1;").executeUpdate();
         entityManager.createNativeQuery("ALTER TABLE comment AUTO_INCREMENT = 1;").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE reply AUTO_INCREMENT = 1;").executeUpdate();
         entityManager.flush();
         entityManager.clear();
     }
 
     private void createComment() {
-        commentService.saveComment(new CommentCreateRequest("new Valid Comment", 1L), httpServletRequest);
+        commentService.saveComment(new CommentCreateRequest("new Valid Comment", 1L), member.getId());
     }
 
     @Test
@@ -94,7 +87,7 @@ public class CommentServiceTest {
         CommentCreateRequest request = new CommentCreateRequest("new valid comment contents", 1L);
 
         // When
-        commentService.saveComment(request, httpServletRequest);
+        commentService.saveComment(request, member.getId());
 
         // Then
         List<Comment> savedComment = commentRepository.findAll();
@@ -112,7 +105,7 @@ public class CommentServiceTest {
         ReplyCreateRequest request = new ReplyCreateRequest("new valid reply contents", 1L, 1L);
 
         // When
-        commentService.saveReply(request, httpServletRequest);
+        commentService.saveReply(request, member.getId());
 
         // Then
         List<Reply> savedReplies = replyRepository.findAll();
@@ -130,10 +123,10 @@ public class CommentServiceTest {
         CommentCreateRequest request = new CommentCreateRequest("contents with non-exist post", 2025L);
 
         // When & Then
-        assertThatThrownBy(() -> commentService.saveComment(request, httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+        assertThatThrownBy(() -> commentService.saveComment(request, member.getId()))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     @Test
@@ -143,10 +136,10 @@ public class CommentServiceTest {
         ReplyCreateRequest request = new ReplyCreateRequest("contents with non-exist comment", 1L, 2025L);
 
         // When & Then
-        assertThatThrownBy(() -> commentService.saveReply(request, httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 댓글입니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+        assertThatThrownBy(() -> commentService.saveReply(request, member.getId()))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("존재하지 않는 댓글입니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     @Test
@@ -157,7 +150,7 @@ public class CommentServiceTest {
         createComment();
 
         // When
-        commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest);
+        commentService.updateComment(commentUpdateRequest, 1L, member.getId());
 
         // Then
         List<Comment> savedComments = commentRepository.findAll();
@@ -174,10 +167,10 @@ public class CommentServiceTest {
 
         // When & Then
         List<Comment> savedComments = commentRepository.findAll();
-        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 2025L, httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 댓글입니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 2025L, member.getId()))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("존재하지 않는 댓글입니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     @Test
@@ -188,15 +181,12 @@ public class CommentServiceTest {
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
 
         memberService.signUp(new MemberSignUpRequest(
-                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"),null));
-        httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
-
+            "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
         // When & Then
-        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+        assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, 2L))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
     }
 
     @Test
@@ -205,12 +195,12 @@ public class CommentServiceTest {
         // Given
         createComment();
         ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("origin valid content", 1L, 1L);
-        commentService.saveReply(replyCreateRequest, httpServletRequest);
+        commentService.saveReply(replyCreateRequest, member.getId());
 
         CommentUpdateRequest updateRequest = new CommentUpdateRequest("new valid content");
 
         // When
-        commentService.updateReply(updateRequest, 1L,  httpServletRequest);
+        commentService.updateReply(updateRequest, 1L, member.getId());
 
         // Then
         List<Reply> savedReplies = replyRepository.findAll();
@@ -225,21 +215,19 @@ public class CommentServiceTest {
         createComment();
 
         ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("origin valid content", 1L, 1L);
-        commentService.saveReply(replyCreateRequest, httpServletRequest);
+        commentService.saveReply(replyCreateRequest, member.getId());
 
         Reply savedReply = replyRepository.findAll().getFirst();
 
         memberService.signUp(new MemberSignUpRequest(
-                "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
-        httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
+            "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
 
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
 
         // When & Then
-        assertThatThrownBy(() -> commentService.updateReply(commentUpdateRequest, savedReply.getId(), httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+        assertThatThrownBy(() -> commentService.updateReply(commentUpdateRequest, savedReply.getId(), 2L))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
     }
 }
