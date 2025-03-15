@@ -2,14 +2,19 @@ package friendy.community.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.security.FriendyUserDetails;
 import org.junit.jupiter.api.BeforeEach;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.response.FindCommentResponse;
+import friendy.community.domain.comment.service.CommentService;
+import friendy.community.domain.post.dto.response.FindMemberResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,12 +31,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = CommentController.class,
@@ -253,6 +262,22 @@ public class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andDo(print())
             .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("댓글 조회 성공 시 200 Ok 반환")
+    void getCommentsListSuccessfullyReturns200Ok() throws Exception {
+        // Given
+        List<FindCommentResponse> comments = List.of(
+                new FindCommentResponse(1L, "comment 1", "2025-01-23T10:00:00", 10, 0, new FindMemberResponse(1L, "author1")),
+                new FindCommentResponse(2L, "comment 2", "2025-01-23T11:00:00", 20, 0, new FindMemberResponse(2L, "author2"))
+        );
+        when(commentService.getComments(any(Pageable.class), any(Long.class)))
+                .thenReturn(new FindAllCommentsResponse(comments, 1));
+
+        // When & Then
+        mockMvc.perform(get("/comments/list").param("page", "0").param("postId", "1"))
+                .andExpect(status().isOk());
     }
 
     @Test
