@@ -28,6 +28,7 @@ import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -260,7 +261,7 @@ public class CommentControllerTest {
         // Given
         Long commentId = 1L;
 
-        doNothing().when(commentService).deleteComment(eq(commentId), any(HttpServletRequest.class));
+        doNothing().when(commentService).deleteComment(eq(commentId), anyLong());
 
         // When & Then
         mockMvc.perform(delete("/comments/{commentId}", commentId)
@@ -275,7 +276,7 @@ public class CommentControllerTest {
         // Given
         Long replyId = 1L;
 
-        doNothing().when(commentService).deleteReply(eq(replyId), any(HttpServletRequest.class));
+        doNothing().when(commentService).deleteReply(eq(replyId), anyLong());
 
         // When & Then
         mockMvc.perform(delete("/comments/reply/{replyId}", replyId)
