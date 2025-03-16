@@ -208,6 +208,20 @@ public class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 답글 id를 수정 요청하면 404 Not Found 예외를 발생한다.")
+    void updateReplyWithNonExistsReplyThrows404NotFound() {
+        // Given
+        createComment();
+        CommentUpdateRequest updateRequest = new CommentUpdateRequest("updated valid content");
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateReply(updateRequest, 2025L, member.getId()))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("존재하지 않는 답글입니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("다른 사용자의 답글을 수정 요청하면 401 Unauthorized 예외를 발생한다.")
     void updateOtherUsersReplyThrows401Unauthorized() {
         // Given
