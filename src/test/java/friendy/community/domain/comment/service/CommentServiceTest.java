@@ -26,11 +26,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-<<<<<<< HEAD
-=======
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletRequest;
->>>>>>> 05dd3ec (test(#80): 테스트 코드 작성)
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
