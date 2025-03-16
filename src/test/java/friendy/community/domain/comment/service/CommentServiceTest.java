@@ -242,7 +242,7 @@ public class CommentServiceTest {
         createComment();
 
         // When
-        commentService.deleteComment(1L);
+        commentService.deleteComment(1L, member.getId());
 
         // Then
         List<Comment> comments = commentRepository.findAll();
@@ -262,7 +262,7 @@ public class CommentServiceTest {
         Reply savedReply = replyRepository.findAll().getFirst();
 
         // When
-        commentService.deleteComment(savedComment.getId());
+        commentService.deleteComment(savedComment.getId(), member.getId());
 
         // Then
         List<Comment> comments = commentRepository.findAll();
@@ -283,7 +283,7 @@ public class CommentServiceTest {
         Reply savedReply = replyRepository.findAll().getFirst();
 
         // When
-        commentService.deleteReply(savedReply.getId());
+        commentService.deleteReply(savedReply.getId(), member.getId());
 
         // Then
         List<Comment> comments = commentRepository.findAll();

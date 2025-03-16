@@ -215,10 +215,10 @@ class PostServiceTest {
         Post post = postRepository.findAll().getFirst();
 
         CommentCreateRequest commentRequest = new CommentCreateRequest("new valid comment", post.getId());
-        commentService.saveComment(commentRequest, httpServletRequest);
+        commentService.saveComment(commentRequest, member.getId());
 
         // When
-        postService.deletePost(httpServletRequest, post.getId());
+        postService.deletePost(member.getId(), post.getId());
 
         // Then
         List<Comment> comments = commentRepository.findAll();
