@@ -58,19 +58,19 @@ public class CommentController implements SpringDocCommentController {
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId
     ) {
-        commentService.deleteComment(commentId, httpServletRequest);
+        commentService.deleteComment(commentId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/reply/{replyId}")
     public ResponseEntity<Void> deleteReply(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long replyId
     ) {
-        commentService.deleteReply(replyId, httpServletRequest);
+        commentService.deleteReply(replyId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
     }
 }
