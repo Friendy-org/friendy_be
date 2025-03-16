@@ -114,7 +114,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<Void> deleteComment(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId
     );
 
@@ -130,7 +130,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 답글 id", exampleMessage = "존재하지 않는 답글입니다.")
     })
     ResponseEntity<Void> deleteReply(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long replyId
     );
 }

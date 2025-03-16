@@ -70,7 +70,7 @@ public class PostService {
 
         List<Comment> comments = commentRepository.findAllByPost(post);
         for (Comment c : comments)
-            commentService.deleteComment(c.getId());
+            commentService.deleteComment(c.getId(), member.getId());
 
         postImageService.deleteImagesForPost(post);
         hashtagService.deleteHashtags(postId);

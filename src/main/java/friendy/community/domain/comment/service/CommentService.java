@@ -67,8 +67,8 @@ public class CommentService {
         replyRepository.save(reply);
     }
 
-    public void deleteComment(final Long commentId, final HttpServletRequest httpServletRequest) {
-        final Member member = getMemberFromRequest(httpServletRequest);
+    public void deleteComment(final Long commentId, final Long memberId) {
+        final Member member = memberService.findMemberById(memberId);
         final Comment comment = getCommentByCommentId(commentId);
         validateAuthor(comment, member);
 
@@ -81,8 +81,8 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    public void deleteReply(final Long replyId, final HttpServletRequest httpServletRequest) {
-        final Member member = getMemberFromRequest(httpServletRequest);
+    public void deleteReply(final Long replyId, final Long memberId) {
+        final Member member = memberService.findMemberById(memberId);
         final Reply reply = getReplyByReplyId(replyId);
         validateAuthor(reply, member);
 
