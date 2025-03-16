@@ -1,16 +1,10 @@
 package friendy.community.domain.comment.service;
 
-<<<<<<< HEAD
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
-=======
 import friendy.community.domain.comment.dto.request.CommentCreateRequest;
 import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
 import friendy.community.domain.comment.dto.response.FindCommentResponse;
->>>>>>> 05dd3ec (test(#80): 테스트 코드 작성)
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
@@ -44,10 +38,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-<<<<<<< HEAD
-=======
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
->>>>>>> 05dd3ec (test(#80): 테스트 코드 작성)
 
 @SpringBootTest
 @Transactional
@@ -140,17 +131,10 @@ public class CommentServiceTest {
         CommentCreateRequest request = new CommentCreateRequest("contents with non-exist post", 2025L);
 
         // When & Then
-<<<<<<< HEAD
         assertThatThrownBy(() -> commentService.saveComment(request, member.getId()))
             .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
+            .hasMessageContaining("요청 게시글이 존재하지 않습니다.")
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
-=======
-        assertThatThrownBy(() -> commentService.saveComment(request, httpServletRequest))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("요청 게시글이 존재하지 않습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
->>>>>>> 05dd3ec (test(#80): 테스트 코드 작성)
     }
 
     @Test
