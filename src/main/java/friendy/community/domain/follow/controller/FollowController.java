@@ -35,18 +35,18 @@ public class FollowController implements SpringDocFollowController {
     @GetMapping("/following/{targetId}")
     public ResponseEntity<FollowListResponse> getFollowingMembers(
         @PathVariable final Long targetId,
-        @RequestParam(required = false) Long startIndex
+        @RequestParam(required = false) Long lastFollowingId
     ) {
-        FollowListResponse response = followService.getFollowingMembers(targetId, startIndex, 10);
+        FollowListResponse response = followService.getFollowingMembers(targetId, lastFollowingId, 3);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/follower/{targetId}")
     public ResponseEntity<FollowListResponse> getFollowerMembers(
         @PathVariable final Long targetId,
-        @RequestParam(required = false) Long startIndex
+        @RequestParam(required = false) Long lastFollowerId
     ) {
-        FollowListResponse response = followService.getFollowerMembers(targetId, startIndex, 10);
+        FollowListResponse response = followService.getFollowerMembers(targetId, lastFollowerId, 3);
         return ResponseEntity.ok(response);
     }
 }
