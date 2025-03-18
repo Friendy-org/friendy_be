@@ -4,6 +4,7 @@ import java.util.List;
 
 public record FindAllPostResponse(
         List<FindPostResponse> posts,
-        Integer totalPages
+        boolean hasNext,
+        Long lastPostId
 ) {
 }
