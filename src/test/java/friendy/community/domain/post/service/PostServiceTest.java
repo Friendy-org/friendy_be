@@ -22,7 +22,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -31,6 +30,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -226,26 +227,28 @@ class PostServiceTest {
     @DisplayName("게시글 목록 조회 성공")
     void getAllPostsSuccessfullyReturnsFindAllPostResponse() {
         // Given
-        createPost();
-        createPost();
+        for (int i = 0; i < 15; i++) {
+            createPost();
+        }
 
         // When
-        FindAllPostResponse response = postService.getAllPosts(PageRequest.of(0, 10));
+        FindAllPostResponse firstResponse = postService.getPostsByLastId(null);
+        FindAllPostResponse secondResponse = postService.getPostsByLastId(firstResponse.lastPostId());
 
         // Then
-        assertThat(response).isNotNull();
-        assertThat(response.posts()).extracting("content")
-            .containsExactlyInAnyOrder("This is a sample post content.", "This is a sample post content.");
+        assertThat(firstResponse.posts().size()).isEqualTo(10);
+        assertThat(secondResponse.posts().size()).isEqualTo(5);
     }
 
     @Test
-    @DisplayName("존재하지 않는 페이지 요청 시 예외 발생")
-    void requestingNonExistentPageThrowsException() {
-        // When & Then
-        assertThatThrownBy(() -> postService.getAllPosts(PageRequest.of(10, 10)))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("요청한 페이지가 존재하지 않습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    @DisplayName("게시글이 없을 경우 예외가 발생한다.")
+    void testGetPostsByLastIdThrowsExceptionWhenNoPosts() {
+        FriendyException exception = assertThrows(FriendyException.class, () -> {
+            postService.getPostsByLastId(null);
+        });
+
+        // 예외 메시지 확인
+        assertEquals("게시글이 없습니다.", exception.getMessage());
     }
 
     @Test
