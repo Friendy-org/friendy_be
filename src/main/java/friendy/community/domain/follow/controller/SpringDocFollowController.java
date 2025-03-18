@@ -51,20 +51,22 @@ public interface SpringDocFollowController {
     @Operation(summary = "팔로잉 리스트 조회", description = "특정 사용자가 팔로우하는 멤버 목록을 가져옵니다.")
     @ApiResponse(responseCode = "200", description = "팔로잉 목록 조회 성공")
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/follow/{targetId}", errorCases = {
-        @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다.")
+        @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다."),
+        @ErrorCase(description = "팔로잉멤버가 없습니다.", exampleMessage = "팔로잉멤버가 없습니다.")
     })
     public ResponseEntity<FollowListResponse> getFollowingMembers(
         @PathVariable Long targetId,
-        @RequestParam(required = false) Long startIndex
+        @RequestParam(required = false) Long lastFollowingId
     );
 
     @Operation(summary = "팔로워 리스트 조회", description = "특정 사용자를 팔로우하는 멤버 목록을 가져옵니다.")
     @ApiResponse(responseCode = "200", description = "팔로워 목록 조회 성공")
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/follow/{targetId}", errorCases = {
-        @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다.")
+        @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다."),
+        @ErrorCase(description = "팔로워가 없습니다.", exampleMessage = "팔로워가 없습니다.")
     })
     ResponseEntity<FollowListResponse> getFollowerMembers(
         @PathVariable Long targetId,
-        @RequestParam(required = false) Long startIndex
+        @RequestParam(required = false) Long lastFollowerId
     );
 }
