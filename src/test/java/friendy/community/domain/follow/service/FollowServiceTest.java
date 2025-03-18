@@ -51,7 +51,12 @@ class FollowServiceTest {
     }
 
     private void resetMemberIdSequence() {
+        followRepository.deleteAll();
+        memberRepository.deleteAll();
         entityManager.createNativeQuery("ALTER TABLE member AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE follow AUTO_INCREMENT = 1").executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Test
@@ -114,19 +119,19 @@ class FollowServiceTest {
     void getFollowingListSuccess() {
         // Given
         List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(12));
-        Member follower = savedMembers.get(0);
-        for (int i = 1; i < savedMembers.size(); i++) {
+        Member follower = member;
+        for (int i = 0; i < savedMembers.size(); i++) {
             Member following = savedMembers.get(i);
             followRepository.save(Follow.of(follower, following));
         }
 
         // When
-        FollowListResponse firstPage = followService.getFollowingMembers(follower.getId(), 0L, 10);
-        FollowListResponse secondPage = followService.getFollowingMembers(follower.getId(), 10L, 10);
+        FollowListResponse firstPage = followService.getFollowingMembers(follower.getId(), null, 10);
+        FollowListResponse secondPage = followService.getFollowingMembers(follower.getId(), firstPage.lastFollowId(), 10);
 
         // Then
         assertThat(firstPage.members().size()).isEqualTo(10);
-        assertThat(secondPage.members().size()).isEqualTo(1);
+        assertThat(secondPage.members().size()).isEqualTo(2);
     }
 
     @Test
@@ -141,8 +146,8 @@ class FollowServiceTest {
         }
 
         // When
-        FollowListResponse firstPage = followService.getFollowerMembers(following.getId(), 0L, 10);
-        FollowListResponse secondPage = followService.getFollowerMembers(following.getId(), 10L, 10);
+        FollowListResponse firstPage = followService.getFollowerMembers(following.getId(), null, 10);
+        FollowListResponse secondPage = followService.getFollowerMembers(following.getId(), firstPage.lastFollowId(), 10);
 
         // Then
         assertThat(firstPage.members().size()).isEqualTo(10);
@@ -208,6 +213,19 @@ class FollowServiceTest {
         assertThatThrownBy(() -> followService.getFollowingMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
 
         assertThatThrownBy(() -> followService.getFollowerMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("팔로잉/팔로워가 없을 경우 예외가 발생한다.")
+    void testGetFollowingAndFollowerMembersThrowsExceptionWhenNoMembers() {
+        // When & Then
+        assertThatThrownBy(() -> followService.getFollowingMembers(1L, 0L, 10))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("팔로잉멤버가 없습니다.");
+
+        assertThatThrownBy(() -> followService.getFollowerMembers(1L, 0L, 10))
+            .isInstanceOf(FriendyException.class)
+            .hasMessageContaining("팔로워가 없습니다.");
     }
 
     @Test

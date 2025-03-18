@@ -83,7 +83,7 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로잉 목록 조회 API 성공")
     void getFollowingMembersSuccess() throws Exception {
-        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false);
+        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false,null);
 
         when(followService.getFollowingMembers(any(), any(), anyInt()))
             .thenReturn(mockResponse);
@@ -100,7 +100,7 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로워 목록 조회 API 성공")
     void getFollowerMembersSuccess() throws Exception {
-        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false);
+        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false , null);
 
         when(followService.getFollowerMembers(any(), any(), anyInt()))
             .thenReturn(mockResponse);
