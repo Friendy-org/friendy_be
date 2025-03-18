@@ -14,12 +14,7 @@ import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.exception.FriendyException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -80,16 +75,8 @@ public class PostService {
         return FindPostResponse.from(post);
     }
 
-    public FindAllPostResponse getAllPosts(Pageable pageable) {
-        Pageable defaultPageable = PageRequest.of(pageable.getPageNumber(), 10);
-        Page<Post> postPage = postQueryDSLRepository.findAllPosts(defaultPageable);
-
-        validatePageNumber(defaultPageable.getPageNumber(), postPage);
-        List<FindPostResponse> findPostResponses = postPage.getContent().stream()
-            .map(FindPostResponse::from)
-            .toList();
-
-        return new FindAllPostResponse(findPostResponses, postPage.getTotalPages());
+    public FindAllPostResponse getPostsByLastId(Long lastPostId) {
+        return postQueryDSLRepository.getPostsByLastId(lastPostId, 10);
     }
 
     private Post validatePostExistence(Long postId) {
@@ -100,12 +87,6 @@ public class PostService {
     private void validatePostAuthor(Member member, Post post) {
         if (!post.getMember().getId().equals(member.getId())) {
             throw new FriendyException(ErrorCode.FORBIDDEN_ACCESS, "게시글은 작성자 본인만 관리할 수 있습니다.");
-        }
-    }
-
-    private void validatePageNumber(int requestedPage, Page<?> page) {
-        if (requestedPage >= page.getTotalPages()) {
-            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "요청한 페이지가 존재하지 않습니다.");
         }
     }
 }
