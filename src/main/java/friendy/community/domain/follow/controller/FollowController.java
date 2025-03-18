@@ -37,7 +37,7 @@ public class FollowController implements SpringDocFollowController {
         @PathVariable final Long targetId,
         @RequestParam(required = false) Long lastFollowingId
     ) {
-        FollowListResponse response = followService.getFollowingMembers(targetId, lastFollowingId, 3);
+        FollowListResponse response = followService.getFollowingMembers(targetId, lastFollowingId);
         return ResponseEntity.ok(response);
     }
 
@@ -46,7 +46,7 @@ public class FollowController implements SpringDocFollowController {
         @PathVariable final Long targetId,
         @RequestParam(required = false) Long lastFollowerId
     ) {
-        FollowListResponse response = followService.getFollowerMembers(targetId, lastFollowerId, 3);
+        FollowListResponse response = followService.getFollowerMembers(targetId, lastFollowerId);
         return ResponseEntity.ok(response);
     }
 }
