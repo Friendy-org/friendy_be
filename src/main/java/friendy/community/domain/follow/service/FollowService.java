@@ -48,20 +48,20 @@ public class FollowService {
         followRepository.delete(follow);
     }
 
-    public FollowListResponse getFollowingMembers(final Long targetId, final Long startIndex, final int pageSize) {
+    public FollowListResponse getFollowingMembers(final Long targetId, final Long lastFollowingId, final int pageSize) {
         if (!memberRepository.existsById(targetId)) {
             throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다.");
         }
 
-        return followQueryDSLRepository.findFollowingMembers(targetId, startIndex, pageSize);
+        return followQueryDSLRepository.findFollowingMembers(targetId, lastFollowingId, pageSize);
     }
 
-    public FollowListResponse getFollowerMembers(final Long targetId, final Long startIndex, final int pageSize) {
+    public FollowListResponse getFollowerMembers(final Long targetId, final Long lastFollowerId, final int pageSize) {
         if (!memberRepository.existsById(targetId)) {
             throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "해당 ID의 회원을 찾을 수 없습니다.");
         }
 
-        return followQueryDSLRepository.findFollowerMembers(targetId, startIndex, pageSize);
+        return followQueryDSLRepository.findFollowerMembers(targetId, lastFollowerId, pageSize);
     }
 
     @Transactional(readOnly = true)
