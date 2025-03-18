@@ -85,7 +85,7 @@ class FollowControllerTest {
     void getFollowingMembersSuccess() throws Exception {
         FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false,null);
 
-        when(followService.getFollowingMembers(any(), any(), anyInt()))
+        when(followService.getFollowingMembers(any(), any()))
             .thenReturn(mockResponse);
 
         mockMvc.perform(get("/follow/following/1")
@@ -102,7 +102,7 @@ class FollowControllerTest {
     void getFollowerMembersSuccess() throws Exception {
         FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false , null);
 
-        when(followService.getFollowerMembers(any(), any(), anyInt()))
+        when(followService.getFollowerMembers(any(), any()))
             .thenReturn(mockResponse);
 
         mockMvc.perform(get("/follow/follower/1")

@@ -118,27 +118,28 @@ class FollowServiceTest {
     @DisplayName("팔로잉 목록 조회 성공 테스트")
     void getFollowingListSuccess() {
         // Given
-        List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(12));
-        Member follower = member;
-        for (int i = 0; i < savedMembers.size(); i++) {
+        List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(25));
+        Member follower = savedMembers.get(0);
+
+        for (int i = 1; i < savedMembers.size(); i++) {
             Member following = savedMembers.get(i);
             followRepository.save(Follow.of(follower, following));
         }
 
         // When
-        FollowListResponse firstPage = followService.getFollowingMembers(follower.getId(), null, 10);
-        FollowListResponse secondPage = followService.getFollowingMembers(follower.getId(), firstPage.lastFollowId(), 10);
+        FollowListResponse firstPage = followService.getFollowingMembers(follower.getId(), null);
+        FollowListResponse secondPage = followService.getFollowingMembers(follower.getId(), firstPage.lastFollowId());
 
         // Then
-        assertThat(firstPage.members().size()).isEqualTo(10);
-        assertThat(secondPage.members().size()).isEqualTo(2);
+        assertThat(firstPage.members().size()).isEqualTo(20);
+        assertThat(secondPage.members().size()).isEqualTo(4);
     }
 
     @Test
     @DisplayName("팔로워 목록 조회 성공 테스트")
     void getFollowerListSuccess() {
         // Given
-        List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(12));
+        List<Member> savedMembers = memberRepository.saveAll(MemberFixture.createMultipleMembers(25));
         Member following = savedMembers.get(0);
         for (int i = 1; i < savedMembers.size(); i++) {
             Member follower = savedMembers.get(i);
@@ -146,12 +147,12 @@ class FollowServiceTest {
         }
 
         // When
-        FollowListResponse firstPage = followService.getFollowerMembers(following.getId(), null, 10);
-        FollowListResponse secondPage = followService.getFollowerMembers(following.getId(), firstPage.lastFollowId(), 10);
+        FollowListResponse firstPage = followService.getFollowerMembers(following.getId(), null);
+        FollowListResponse secondPage = followService.getFollowerMembers(following.getId(), firstPage.lastFollowId());
 
         // Then
-        assertThat(firstPage.members().size()).isEqualTo(10);
-        assertThat(secondPage.members().size()).isEqualTo(1);
+        assertThat(firstPage.members().size()).isEqualTo(20);
+        assertThat(secondPage.members().size()).isEqualTo(4);
     }
 
     @Test
@@ -210,20 +211,20 @@ class FollowServiceTest {
         Long nonExistentMemberId = 999L;
 
         // When & Then
-        assertThatThrownBy(() -> followService.getFollowingMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowingMembers(nonExistentMemberId, 0L )).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
 
-        assertThatThrownBy(() -> followService.getFollowerMembers(nonExistentMemberId, 0L, 10)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
+        assertThatThrownBy(() -> followService.getFollowerMembers(nonExistentMemberId, 0L)).isInstanceOf(FriendyException.class).hasMessageContaining("해당 ID의 회원을 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("팔로잉/팔로워가 없을 경우 예외가 발생한다.")
     void testGetFollowingAndFollowerMembersThrowsExceptionWhenNoMembers() {
         // When & Then
-        assertThatThrownBy(() -> followService.getFollowingMembers(1L, 0L, 10))
+        assertThatThrownBy(() -> followService.getFollowingMembers(1L, 0L))
             .isInstanceOf(FriendyException.class)
             .hasMessageContaining("팔로잉멤버가 없습니다.");
 
-        assertThatThrownBy(() -> followService.getFollowerMembers(1L, 0L, 10))
+        assertThatThrownBy(() -> followService.getFollowerMembers(1L, 0L))
             .isInstanceOf(FriendyException.class)
             .hasMessageContaining("팔로워가 없습니다.");
     }
