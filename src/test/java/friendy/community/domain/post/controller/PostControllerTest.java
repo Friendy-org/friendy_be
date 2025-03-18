@@ -197,25 +197,11 @@ class PostControllerTest {
             new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"), null),
             new FindPostResponse(2L, "Post 2", "2025-01-23T11:00:00", 20, 10, 3, new FindMemberResponse(2L, "author2"), null)
         );
-        when(postService.getAllPosts(any(Pageable.class)))
-            .thenReturn(new FindAllPostResponse(posts, 1));
+        when(postService.getPostsByLastId(anyLong()))
+            .thenReturn(new FindAllPostResponse(posts, false, 1L));
 
         // When & Then
         mockMvc.perform(get(BASE_URL + "/list").param("page", "0"))
             .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("없는 페이지 요청 시 404 Not Found 반환")
-    void getPostsListWithNonExistentPageReturns404NotFound() throws Exception {
-        // Given
-        when(postService.getAllPosts(any(Pageable.class)))
-            .thenThrow(new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "요청한 페이지가 존재하지 않습니다."));
-
-        // When & Then
-        mockMvc.perform(get(BASE_URL + "/list").param("page", "100"))
-            .andDo(print())
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.detail").value("요청한 페이지가 존재하지 않습니다."));
     }
 }
