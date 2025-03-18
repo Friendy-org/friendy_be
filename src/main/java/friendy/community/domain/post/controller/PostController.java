@@ -60,10 +60,9 @@ public class PostController implements SpringDocPostController {
 
     @GetMapping("/list")
     public ResponseEntity<FindAllPostResponse> getAllPosts(
-        @RequestParam(defaultValue = "0") int page
+        @RequestParam(required = false) Long lastPostId
     ) {
-        Pageable pageable = PageRequest.of(page, 10);
-        return ResponseEntity.ok(postService.getAllPosts(pageable));
+        return ResponseEntity.ok(postService.getPostsByLastId(lastPostId));
     }
 
 }
