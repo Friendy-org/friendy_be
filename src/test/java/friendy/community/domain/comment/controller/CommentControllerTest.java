@@ -28,6 +28,7 @@ import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -252,5 +253,35 @@ public class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andDo(print())
             .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 성공 시 200 Ok 응답")
+    void deleteCommentSuccessfullyReturns200Ok() throws Exception {
+        // Given
+        Long commentId = 1L;
+
+        doNothing().when(commentService).deleteComment(eq(commentId), anyLong());
+
+        // When & Then
+        mockMvc.perform(delete("/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("답글 삭제 성공 시 200 Ok 응답")
+    void deleteReplySuccessfullyReturns200Ok() throws Exception {
+        // Given
+        Long replyId = 1L;
+
+        doNothing().when(commentService).deleteReply(eq(replyId), anyLong());
+
+        // When & Then
+        mockMvc.perform(delete("/comments/reply/{replyId}", replyId)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 }

@@ -17,6 +17,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,6 +33,8 @@ public class CommentService {
         final Member member = memberService.findMemberById(memberId);
         final Post post = getPostByPostId(commentCreateRequest.postId());
         final Comment comment = Comment.of(commentCreateRequest, member, post);
+
+        post.updateCommentCount(post.getCommentCount() + 1);
 
         commentRepository.save(comment);
     }
@@ -61,6 +65,31 @@ public class CommentService {
 
         reply.updateContent(commentUpdateRequest.content());
         replyRepository.save(reply);
+    }
+
+    public void deleteComment(final Long commentId, final Long memberId) {
+        final Member member = memberService.findMemberById(memberId);
+        final Comment comment = getCommentByCommentId(commentId);
+        validateAuthor(comment, member);
+
+        List<Reply> replies = replyRepository.findAllByComment(comment);
+        replyRepository.deleteAll(replies);
+
+        Post post = comment.getPost();
+        post.updateCommentCount(post.getCommentCount() - 1);
+
+        commentRepository.delete(comment);
+    }
+
+    public void deleteReply(final Long replyId, final Long memberId) {
+        final Member member = memberService.findMemberById(memberId);
+        final Reply reply = getReplyByReplyId(replyId);
+        validateAuthor(reply, member);
+
+        Comment comment = reply.getComment();
+        comment.updateReplyCount(comment.getReplyCount() - 1);
+
+        replyRepository.delete(reply);
     }
 
     private void validateAuthor(final Comment comment, final Member member) {
