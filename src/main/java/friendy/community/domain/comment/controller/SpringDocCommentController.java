@@ -3,13 +3,13 @@ package friendy.community.domain.comment.controller;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,7 +28,7 @@ public interface SpringDocCommentController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments", errorCases = {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다.")
     })
-    ResponseEntity<Void> createComment(
+    ResponseEntity<FriendyResponse<Void>> createComment(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @RequestBody CommentCreateRequest commentRequest
     );
@@ -45,7 +45,7 @@ public interface SpringDocCommentController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/{commentId}", errorCases = {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
-    ResponseEntity<Void> updateComment(
+    ResponseEntity<FriendyResponse<Void>> updateComment(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
@@ -63,7 +63,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다."),
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
-    ResponseEntity<Void> createReply(
+    ResponseEntity<FriendyResponse<Void>> createReply(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @RequestBody ReplyCreateRequest replyRequest
     );
@@ -80,7 +80,7 @@ public interface SpringDocCommentController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply/{commentId}", errorCases = {
             @ErrorCase(description = "잘못된 답글 id", exampleMessage = "존재하지 않는 답글입니다.")
     })
-    ResponseEntity<Void> updateReply(
+    ResponseEntity<FriendyResponse<Void>> updateReply(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
