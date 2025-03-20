@@ -3,6 +3,7 @@ package friendy.community.domain.member.controller;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,21 +38,21 @@ public interface SpringDocMemberController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/signup", errorCases = {
         @ErrorCase(description = "S3 객체 복사에 실패했습니다", exampleMessage = "S3 객체 복사에 실패했습니다")
     })
-    ResponseEntity<Void> signUp(MemberSignUpRequest request);
+    ResponseEntity<FriendyResponse<Void>> signUp(MemberSignUpRequest request);
 
     @Operation(summary = "비밀번호 변경")
     @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공")
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/auth/password", errorCases = {
             @ErrorCase(description = "이메일 불일치", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다.")
     })
-    ResponseEntity<Void> password(PasswordRequest passwordRequest);
+    ResponseEntity<FriendyResponse<Void>> password(PasswordRequest passwordRequest);
 
     @Operation(summary = "프로필 조회")
     @ApiResponse(responseCode = "200", description = "프로필 조회 성공")
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/member/{memberId}", errorCases = {
             @ErrorCase(description = "존재하지 않는 회원", exampleMessage = "존재하지 않는 회원입니다.")
     })
-    ResponseEntity<FindMemberResponse> findMember(
+    ResponseEntity<FriendyResponse<FindMemberResponse>> findMember(
             HttpServletRequest httpServletRequest,
             @PathVariable Long memberId
     );
