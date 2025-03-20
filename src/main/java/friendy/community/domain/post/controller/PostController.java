@@ -5,11 +5,10 @@ import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.service.PostService;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -59,10 +58,11 @@ public class PostController implements SpringDocPostController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<FindAllPostResponse> getAllPosts(
+    public ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
         @RequestParam(required = false) Long lastPostId
     ) {
-        return ResponseEntity.ok(postService.getPostsByLastId(lastPostId));
+        FriendyResponse<FindAllPostResponse> response = FriendyResponse.of(200, "회원가입성공",postService.getPostsByLastId(lastPostId));
+        return ResponseEntity.ok(response);
     }
 
 }
