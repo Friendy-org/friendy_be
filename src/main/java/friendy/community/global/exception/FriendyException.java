@@ -1,7 +1,7 @@
 package friendy.community.global.exception;
 
+import friendy.community.global.response.ExceptionResponse;
 import lombok.Getter;
-import org.springframework.http.ProblemDetail;
 
 @Getter
 public class FriendyException extends RuntimeException {
@@ -13,11 +13,8 @@ public class FriendyException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public ProblemDetail toProblemDetail() {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                errorCode.getHttpStatus(),
-                getMessage());
-        return GlobalExceptionHandler.setProperties(problemDetail, errorCode.getCode());
+    public ExceptionResponse toExceptionResponse() {
+        return ExceptionResponse.of(errorCode.getCode(), getMessage());
     }
 
 }
