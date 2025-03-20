@@ -4,6 +4,7 @@ import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +55,7 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/posts/{postId}", errorCases = {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
-    ResponseEntity<Void> updatePost(
+    ResponseEntity<FriendyResponse<Void>> updatePost(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest
@@ -77,7 +77,7 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/posts/{postId}", errorCases = {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
-    ResponseEntity<Void> deletePost(
+    ResponseEntity<FriendyResponse<Void>> deletePost(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long postId
     );
@@ -96,7 +96,7 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/posts/list", errorCases = {
         @ErrorCase(description = "게시글이 없습니다.", exampleMessage = "게시글이 없습니다.")
     })
-    ResponseEntity<FindAllPostResponse> getAllPosts(
+    ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
         @RequestParam(required = false) Long lastPostId
     );
 
