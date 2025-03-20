@@ -1,8 +1,10 @@
 package friendy.community.domain.comment.service;
 
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.response.FindCommentResponse;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
@@ -24,6 +26,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
@@ -31,6 +35,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 
 @SpringBootTest
 @Transactional
@@ -125,7 +130,7 @@ public class CommentServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentService.saveComment(request, member.getId()))
             .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
+            .hasMessageContaining("요청 게시글이 존재하지 않습니다.")
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
     }
 
@@ -209,6 +214,20 @@ public class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 답글 id를 수정 요청하면 404 Not Found 예외를 발생한다.")
+    void updateReplyWithNonExistsReplyThrows404NotFound() {
+        // Given
+        createComment();
+        CommentUpdateRequest updateRequest = new CommentUpdateRequest("updated valid content");
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateReply(updateRequest, 2025L, member.getId()))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("존재하지 않는 답글입니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("다른 사용자의 답글을 수정 요청하면 401 Unauthorized 예외를 발생한다.")
     void updateOtherUsersReplyThrows401Unauthorized() {
         // Given
@@ -230,4 +249,34 @@ public class CommentServiceTest {
             .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
     }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공")
+    void getCommentsSuccessfullyReturnsFindAllCommentResponse() {
+        // Given
+        createComment();
+        createComment();
+
+        Long postId = commentRepository.findAll().getFirst().getPost().getId();
+
+        // When
+        FindAllCommentsResponse response = commentService.getComments(PageRequest.of(0, 10), postId);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.comments()).extracting("content")
+                .containsExactlyInAnyOrder("new Valid Comment", "new Valid Comment");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 페이지 요청 시 예외 발생")
+    void requestingNonExistentPageThrowsException() {
+        // When & Then
+        assertThatThrownBy(() -> commentService.getComments(PageRequest.of(10, 10), 1L))
+                .isInstanceOf(FriendyException.class)
+                .hasMessageContaining("요청한 페이지가 존재하지 않습니다.")
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+
 }
