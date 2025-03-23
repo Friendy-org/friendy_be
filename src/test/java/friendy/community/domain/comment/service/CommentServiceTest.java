@@ -17,7 +17,6 @@ import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +60,7 @@ public class CommentServiceTest {
         resetDataBase();
 
         member = MemberFixture.memberFixture();
-        Long memberId = memberService.signUp(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+        Long memberId = memberService.signup(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
 
         member = memberService.findMemberById(memberId);
 
@@ -184,7 +183,7 @@ public class CommentServiceTest {
         createComment();
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
 
-        memberService.signUp(new MemberSignUpRequest(
+        memberService.signup(new MemberSignUpRequest(
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
         // When & Then
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, 2L))
@@ -223,7 +222,7 @@ public class CommentServiceTest {
 
         Reply savedReply = replyRepository.findAll().getFirst();
 
-        memberService.signUp(new MemberSignUpRequest(
+        memberService.signup(new MemberSignUpRequest(
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
 
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");

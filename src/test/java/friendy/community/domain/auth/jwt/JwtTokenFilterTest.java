@@ -5,7 +5,6 @@ import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,7 +54,7 @@ class JwtTokenFilterTest {
 
         Member member = MemberFixture.memberFixture();
 
-        memberService.signUp(new MemberSignUpRequest(
+        memberService.signup(new MemberSignUpRequest(
             member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
     }
 

@@ -14,13 +14,13 @@ public record FriendyResponse<T>(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "결과 데이터", example = "결과값이 여기에 포함될 수 있습니다.")
-    @Nullable T result  // Optional 제거
+    @Nullable T result
 ) {
-    public static <T> FriendyResponse<T> of(int code, String message) {
-        return new FriendyResponse<>(code, message, null);  // 결과값이 없을 경우 null 처리
+    public static <T> FriendyResponse<T> of(ApiCode apiCode) {
+        return new FriendyResponse<>(apiCode.getCode(), apiCode.getMessage(), null);
     }
 
-    public static <T> FriendyResponse<T> of(int code, String message, T result) {
-        return new FriendyResponse<>(code, message, result);
+    public static <T> FriendyResponse<T> of(ApiCode apiCode, T result) {
+        return new FriendyResponse<>(apiCode.getCode(), apiCode.getMessage(), result);
     }
 }

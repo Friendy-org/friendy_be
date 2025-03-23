@@ -11,8 +11,8 @@ import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
+import friendy.community.global.exception.domain.BadRequestException;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class MemberService {
     private final AuthService authService;
     private final S3service s3service;
 
-    public Long signUp(MemberSignUpRequest request) {
+    public Long signup(MemberSignUpRequest request) {
         validateUniqueMemberAttributes(request);
         final String salt = saltGenerator.generate();
         final String encryptedPassword = passwordEncryptor.encrypt(request.password(), salt);
@@ -46,17 +46,17 @@ public class MemberService {
         return member.getId();
     }
 
-    public void resetPassword(PasswordRequest request) {
+    public void changePassword(PasswordRequest request) {
         Member member = authService.getMemberByEmail(request.email());
 
         final String salt = saltGenerator.generate();
         final String encryptedPassword = passwordEncryptor.encrypt(request.newPassword(), salt);
 
-        member.resetPassword(encryptedPassword, salt);
+        member.changePassword(encryptedPassword, salt);
         memberRepository.save(member);
     }
 
-    public FindMemberResponse getMember(HttpServletRequest httpServletRequest, Long memberId) {
+    public FindMemberResponse getMemberInfo(HttpServletRequest httpServletRequest, Long memberId) {
         final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
 
@@ -73,7 +73,7 @@ public class MemberService {
 
     public void assertUniqueEmail(String email) {
         if (memberRepository.existsByEmail(email)) {
-            throw new FriendyException(ErrorCode.DUPLICATE_EMAIL, "이미 가입된 이메일입니다.");
+            throw new BadRequestException(ErrorCode.DUPLICATE_EMAIL, "이미 가입된 이메일입니다.");
         }
     }
 

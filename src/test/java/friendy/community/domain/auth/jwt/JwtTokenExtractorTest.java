@@ -1,6 +1,5 @@
 package friendy.community.domain.auth.jwt;
 
-import friendy.community.global.exception.FriendyException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

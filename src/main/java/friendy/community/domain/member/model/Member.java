@@ -36,7 +36,7 @@ public class Member extends BaseEntity {
     @JoinColumn(name = "member_image_id")
     private MemberImage memberImage;
 
-    public void resetPassword(final String password, final String salt) {
+    public void changePassword(final String password, final String salt) {
         this.password = password;
         this.salt = salt;
     }

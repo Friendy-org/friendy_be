@@ -2,26 +2,19 @@ package friendy.community.domain.auth.service;
 
 import friendy.community.domain.auth.dto.request.LoginRequest;
 import friendy.community.domain.auth.dto.response.TokenResponse;
-import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
-import friendy.community.global.exception.FriendyException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.io.Console;
-import java.util.Optional;
 
 import static friendy.community.domain.auth.fixtures.TokenFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;

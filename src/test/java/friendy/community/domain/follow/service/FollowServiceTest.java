@@ -8,7 +8,6 @@ import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.domain.member.service.MemberService;
-import friendy.community.global.exception.FriendyException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +45,7 @@ class FollowServiceTest {
         resetMemberIdSequence();
 
         member = MemberFixture.memberFixture();
-        Long memberId = memberService.signUp(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+        Long memberId = memberService.signup(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
         member = memberService.findMemberById(memberId);
     }
 

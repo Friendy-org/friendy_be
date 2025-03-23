@@ -1,7 +1,6 @@
 package friendy.community.infra.storage.s3.exception;
 
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -1,7 +1,6 @@
 package friendy.community.domain.member.encryption;
 
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;

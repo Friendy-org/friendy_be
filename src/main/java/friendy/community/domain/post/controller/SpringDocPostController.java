@@ -32,7 +32,7 @@ public interface SpringDocPostController {
             @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}")
 
     })
-    ResponseEntity<Void> createPost(
+    ResponseEntity<FriendyResponse<Void>> createPost(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @RequestBody PostCreateRequest postRequest
     );
@@ -87,7 +87,7 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/posts/{postId}", errorCases = {
             @ErrorCase(description = "존재하지 않는 게시글 ID", exampleMessage = "존재하지 않는 게시글입니다.")
     })
-    ResponseEntity<FindPostResponse> getPost(
+    ResponseEntity<FriendyResponse<FindPostResponse>> getPost(
             @PathVariable Long postId
     );
 

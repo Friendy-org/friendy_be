@@ -7,7 +7,6 @@ import friendy.community.domain.follow.model.Follow;
 import friendy.community.domain.member.model.QMember;
 import friendy.community.domain.member.model.QMemberImage;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

@@ -3,7 +3,6 @@ package friendy.community.infra.storage.s3.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.exception.S3exception;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;

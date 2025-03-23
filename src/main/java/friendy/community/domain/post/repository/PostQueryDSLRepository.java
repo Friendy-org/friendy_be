@@ -8,7 +8,6 @@ import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.model.QPost;
 import friendy.community.domain.post.model.QPostImage;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
