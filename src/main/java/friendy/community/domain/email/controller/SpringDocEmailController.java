@@ -2,6 +2,7 @@ package friendy.community.domain.email.controller;
 
 import friendy.community.domain.email.dto.request.EmailRequest;
 import friendy.community.domain.email.dto.request.VerifyCodeRequest;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +19,7 @@ public interface SpringDocEmailController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/send-code", errorCases = {
             @ErrorCase(description = "인증번호 전송 실패", exampleMessage = "이메일 전송에 실패했습니다."),
     })
-    ResponseEntity<Void> sendAuthenticatedEmail(EmailRequest request);
+    ResponseEntity<FriendyResponse<Void>> sendAuthenticatedEmail(EmailRequest request);
 
     @Operation(summary = "이메일 인증코드 검증")
     @ApiResponse(responseCode = "200", description = "인증코드 검증 성공")
@@ -26,6 +27,5 @@ public interface SpringDocEmailController {
             @ErrorCase(description = "인증번호 없음", exampleMessage = "인증번호가 존재하지 않습니다."),
             @ErrorCase(description = "인증번호 불일치", exampleMessage = "인증번호가 일치하지 않습니다."),
     })
-    ResponseEntity<Void> verifyAuthCode(VerifyCodeRequest request);
-
+    ResponseEntity<FriendyResponse<Void>> verifyAuthCode(VerifyCodeRequest request);
 }

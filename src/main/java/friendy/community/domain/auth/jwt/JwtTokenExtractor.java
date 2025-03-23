@@ -1,7 +1,6 @@
 package friendy.community.domain.auth.jwt;
 
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;

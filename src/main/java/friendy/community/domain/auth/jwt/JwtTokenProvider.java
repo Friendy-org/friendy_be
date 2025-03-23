@@ -1,7 +1,6 @@
 package friendy.community.domain.auth.jwt;
 
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

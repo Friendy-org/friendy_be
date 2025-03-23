@@ -1,6 +1,7 @@
 package friendy.community.domain.follow.controller;
 
 import friendy.community.domain.follow.dto.response.FollowListResponse;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
@@ -27,7 +28,7 @@ public interface SpringDocFollowController {
     @ApiErrorResponse(status = HttpStatus.CONFLICT, instance = "/follow/{targetId}", errorCases = {
         @ErrorCase(description = "이미 팔로우한 회원", exampleMessage = "이미 팔로우한 회원입니다.")
     })
-    ResponseEntity<Void> follow(
+    ResponseEntity<FriendyResponse<Void>> follow(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long targetId
     );
@@ -43,7 +44,7 @@ public interface SpringDocFollowController {
     @ApiErrorResponse(status = HttpStatus.CONFLICT, instance = "/follow/{targetId}", errorCases = {
         @ErrorCase(description = "팔로우하지 않은 회원입니다.", exampleMessage = "팔로우하지 않은 회원입니다.")
     })
-    ResponseEntity<Void> unfollow(
+    ResponseEntity<FriendyResponse<Void>> unfollow(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long targetId
     );
@@ -54,7 +55,7 @@ public interface SpringDocFollowController {
         @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다."),
         @ErrorCase(description = "팔로잉멤버가 없습니다.", exampleMessage = "팔로잉멤버가 없습니다.")
     })
-    public ResponseEntity<FollowListResponse> getFollowingMembers(
+    ResponseEntity<FriendyResponse<FollowListResponse>> getFollowingMembers(
         @PathVariable Long targetId,
         @RequestParam(required = false) Long lastFollowingId
     );
@@ -65,7 +66,7 @@ public interface SpringDocFollowController {
         @ErrorCase(description = "해당 ID의 회원을 찾을 수 없습니다.", exampleMessage = "해당 ID의 회원을 찾을 수 없습니다."),
         @ErrorCase(description = "팔로워가 없습니다.", exampleMessage = "팔로워가 없습니다.")
     })
-    ResponseEntity<FollowListResponse> getFollowerMembers(
+    ResponseEntity<FriendyResponse<FollowListResponse>> getFollowerMembers(
         @PathVariable Long targetId,
         @RequestParam(required = false) Long lastFollowerId
     );

@@ -1,11 +1,15 @@
 package friendy.community.domain.upload.controller;
 
+import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.domain.upload.dto.response.UploadResponse;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,5 +28,6 @@ public interface SpringDocUploadController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/file/upload", errorCases = {
             @ErrorCase(description = "S3 업로드 중 오류 발생" , exampleMessage = "S3 업로드 중 오류 발생")
     })
-    String uploadMultipleFile(@RequestPart("file") MultipartFile multipartFile);
+    ResponseEntity<FriendyResponse<UploadResponse>> uploadMultipleFile(
+            @RequestPart("file") MultipartFile multipartFile);
 }

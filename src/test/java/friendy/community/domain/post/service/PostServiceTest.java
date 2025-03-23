@@ -17,7 +17,6 @@ import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -73,7 +72,7 @@ class PostServiceTest {
 
         member = MemberFixture.memberFixture();
 
-        Long memberId = memberService.signUp(new MemberSignUpRequest(
+        Long memberId = memberService.signup(new MemberSignUpRequest(
             member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
 
         member = memberService.findMemberById(memberId);
@@ -105,7 +104,7 @@ class PostServiceTest {
     }
 
     private void signUpOtherUser() {
-        memberService.signUp(new MemberSignUpRequest(
+        memberService.signup(new MemberSignUpRequest(
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
     }
 

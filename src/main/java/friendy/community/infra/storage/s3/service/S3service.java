@@ -2,8 +2,8 @@ package friendy.community.infra.storage.s3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import friendy.community.domain.upload.dto.response.UploadResponse;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.exception.S3exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +29,12 @@ public class S3service {
 
     private final S3exception s3exception;
 
-    public String upload(MultipartFile multipartFile, String dirName) {
+    public UploadResponse upload(MultipartFile multipartFile, String dirName) {
         s3exception.validateFile(multipartFile);
 
-        return putS3(multipartFile, generateStoredFileName(multipartFile,dirName));
+        String imageUrl = putS3(multipartFile, generateStoredFileName(multipartFile, dirName));
+
+        return new UploadResponse(imageUrl);
     }
 
     public String generateStoredFileName(MultipartFile multipartFile, String dirName) {

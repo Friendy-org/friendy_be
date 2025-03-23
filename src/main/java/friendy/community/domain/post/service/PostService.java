@@ -14,7 +14,6 @@ import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

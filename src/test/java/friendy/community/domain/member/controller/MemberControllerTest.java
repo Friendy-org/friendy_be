@@ -10,7 +10,6 @@ import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,12 +57,12 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("회원가입 요청이 성공적으로 처리되면 201 Created와 함께 응답을 반환한다")
-    void signUpSuccessfullyReturns201Created() throws Exception {
+    void signupSuccessfullyReturns201Created() throws Exception {
         // given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"), null);
 
         // Mock Service
-        when(memberService.signUp(any(MemberSignUpRequest.class))).thenReturn(1L);
+        when(memberService.signup(any(MemberSignUpRequest.class))).thenReturn(1L);
 
         // When & Then
         mockMvc.perform(post("/signup")
@@ -76,7 +75,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("이메일이 없으면 400 Bad Request를 반환한다")
-    void signUpWithoutEmailReturns400BadRequest() throws Exception {
+    void signupWithoutEmailReturns400BadRequest() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest(null, "bokSungKim", "password123!", LocalDate.parse("2002-08-13"), null);
 
@@ -90,7 +89,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("이메일 형식이 올바르지 않으면 400 Bad Request를 반환한다")
-    void signUpWithInvalidEmailReturns400BadRequest() throws Exception {
+    void signupWithInvalidEmailReturns400BadRequest() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("invalid-email", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"), null);
 
@@ -104,12 +103,12 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("이메일이 중복되면 409 Conflict를 반환한다")
-    void signUpWithDuplicateEmailReturns409Conflict() throws Exception {
+    void signupWithDuplicateEmailReturns409Conflict() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("duplicate@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"), null);
 
         // Mock Service
-        when(memberService.signUp(any(MemberSignUpRequest.class)))
+        when(memberService.signup(any(MemberSignUpRequest.class)))
             .thenThrow(new FriendyException(ErrorCode.DUPLICATE_EMAIL, "이미 가입된 이메일입니다."));
 
         // When & Then
@@ -125,7 +124,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("닉네임이 없으면 400 Bad Request를 반환한다")
-    void signUpWithoutNicknameReturns400BadRequest() throws Exception {
+    void signupWithoutNicknameReturns400BadRequest() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", null, "password123!", LocalDate.parse("2002-08-13"), null);
 
@@ -143,7 +142,7 @@ class MemberControllerTest {
         "example@friendy.com, a, password123!, 닉네임은 2~20자 사이로 입력해주세요.",
         "example@friendy.com, thisisaveryverylongnickname, password123!, 닉네임은 2~20자 사이로 입력해주세요."
     })
-    void signUpWithInvalidNicknameLengthReturns400BadRequest(
+    void signupWithInvalidNicknameLengthReturns400BadRequest(
         String email, String nickname, String password, String expectedMessage) throws Exception {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(email, nickname, password, LocalDate.parse("2002-08-13"), null);
@@ -161,12 +160,12 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("닉네임이 중복되면 409 Conflict를 반환한다")
-    void signUpWithDuplicateNicknameReturns409Conflict() throws Exception {
+    void signupWithDuplicateNicknameReturns409Conflict() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "duplicateNickname", "password123!", LocalDate.parse("2002-08-13"), null);
 
         // Mock Service
-        when(memberService.signUp(any(MemberSignUpRequest.class)))
+        when(memberService.signup(any(MemberSignUpRequest.class)))
             .thenThrow(new FriendyException(ErrorCode.DUPLICATE_NICKNAME, "닉네임이 이미 존재합니다."));
 
         // When & Then
@@ -182,7 +181,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("비밀번호가 없으면 400 Bad Request를 반환한다")
-    void signUpWithoutPasswordReturns400BadRequest() throws Exception {
+    void signupWithoutChangePasswordReturns400BadRequest() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "bokSungKim", null, LocalDate.parse("2002-08-13"), null);
 
@@ -201,7 +200,7 @@ class MemberControllerTest {
         "example@friendy.com, validNickname, password123, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다.",
         "example@friendy.com, validNickname, 12345678, 숫자, 영문자, 특수문자(~!@#$%^&*?)를 포함해야 합니다."
     })
-    void signUpWithInvalidPasswordPatternReturns400BadRequest(
+    void signupWithInvalidChangePasswordPatternReturns400BadRequest(
         String email, String nickname, String password, String expectedMessage) throws Exception {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(email, nickname, password, LocalDate.parse("2002-08-13"), null);
@@ -222,7 +221,7 @@ class MemberControllerTest {
         "example@friendy.com, bokSungKim, short, 비밀번호는 8~16자 사이로 입력해주세요.",
         "example@friendy.com, bokSungKim, thispasswordiswaytoolong123!, 비밀번호는 8~16자 사이로 입력해주세요."
     })
-    void signUpWithInvalidPasswordLengthReturns400BadRequest(
+    void signupWithInvalidChangePasswordLengthReturns400BadRequest(
         String email, String nickname, String password, String expectedMessage) throws Exception {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(email, nickname, password, LocalDate.parse("2002-08-13"), null);
@@ -240,7 +239,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("생년월일이 없으면 400 Bad Request를 반환한다")
-    void signUpWithoutBirthDateReturns400BadRequest() throws Exception {
+    void signupWithoutBirthDateReturns400BadRequest() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "bokSungKim", "password123!", null, null);
 
@@ -254,7 +253,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("비밀번호 변경이 완료되면 200 OK가 반환된다")
-    void resetPasswordSuccessfullyReturns200() throws Exception {
+    void resetChangePasswordSuccessfullyReturns200() throws Exception {
         // Given
         PasswordRequest passwordRequest = new PasswordRequest("example@friendy.com", "newPassword123!");
 
@@ -274,7 +273,7 @@ class MemberControllerTest {
 
         doThrow(new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."))
             .when(memberService)
-            .resetPassword(any(PasswordRequest.class));
+            .changePassword(any(PasswordRequest.class));
 
         // When & Then
         mockMvc.perform(post("/password")
@@ -289,7 +288,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("회원가입 요청이 성공적으로 처리되면 201 Created와 함께 응답을 반환한다 (이미지 포함)")
-    void signUpSuccessfullyReturns201CreatedWithImage() throws Exception {
+    void signupSuccessfullyReturns201CreatedWithImage() throws Exception {
         // Given
         MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest(
             "example@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"),
@@ -297,7 +296,7 @@ class MemberControllerTest {
         );
 
         // Mock Service
-        when(memberService.signUp(any(MemberSignUpRequest.class))).thenReturn(1L);
+        when(memberService.signup(any(MemberSignUpRequest.class))).thenReturn(1L);
 
         // When & Then
         mockMvc.perform(post("/signup")
@@ -311,7 +310,7 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("회원 정보 조회 성공 시 200 OK와 회원 정보를 반환한다")
-    void findMemberSuccessfullyReturns200Ok() throws Exception {
+    void getMemberInfoSuccessfullyReturns200Ok() throws Exception {
         // Given
         Long memberId = 1L;
         HttpServletRequest request = new MockHttpServletRequest();
@@ -320,7 +319,7 @@ class MemberControllerTest {
             true, 1L, "example@friendy.com", "bokSungKim", LocalDate.parse("2002-08-13")
         );
 
-        when(memberService.getMember(any(HttpServletRequest.class), eq(memberId)))
+        when(memberService.getMemberInfo(any(HttpServletRequest.class), eq(memberId)))
             .thenReturn(response);
 
         // When & Then
@@ -338,12 +337,12 @@ class MemberControllerTest {
 
     @Test
     @DisplayName("존재하지 않는 회원 조회 시 404 Not Found를 반환한다")
-    void findMemberWithNonExistentIdReturns404NotFound() throws Exception {
+    void getMemberInfoWithNonExistentIdReturns404NotFound() throws Exception {
         // Given
         Long nonExistentMemberId = 999L;
         HttpServletRequest request = new MockHttpServletRequest();
 
-        when(memberService.getMember(any(HttpServletRequest.class), eq(nonExistentMemberId)))
+        when(memberService.getMemberInfo(any(HttpServletRequest.class), eq(nonExistentMemberId)))
             .thenThrow(new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 회원입니다."));
 
         // When & Then

@@ -32,13 +32,13 @@ class MemberTest {
 
     @Test
     @DisplayName("resetPassword 메서드는 해당 객체의 비밀번호를 요청한 새 비밀번호로 변경한다")
-    void resetPasswordMethodChangesPasswordFromRequestPassword() {
+    void changePasswordMethodChangesPasswordFromRequestPassword() {
         // Given
         Member member = MemberFixture.memberFixture();
         String newEncryptedPassword = "newSecurePw123!";
 
         // When
-        member.resetPassword(newEncryptedPassword, member.getSalt());
+        member.changePassword(newEncryptedPassword, member.getSalt());
 
         // Then
         assertThat(member.getPassword()).isEqualTo(newEncryptedPassword);

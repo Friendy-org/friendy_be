@@ -7,7 +7,6 @@ import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +53,7 @@ public class AuthService {
     }
 
     public Member getMemberByEmail(String email) {
-        return memberRepository.findByEmail(email)
+        return memberRepository.findByEmail(email) //4100
                 .orElseThrow(() -> new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."));
     }
 
@@ -67,9 +66,8 @@ public class AuthService {
     private void validateCorrectPassword(Member member, String password) {
         String salt = member.getSalt();
         String encryptedPassword = passwordEncryptor.encrypt(password, salt);
-        if (!member.matchPassword(encryptedPassword)) {
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_PASSWORD, "로그인에 실패하였습니다. 비밀번호를 확인해주세요.");
+        if (!member.matchPassword(encryptedPassword)) {   //4101
+            throw new FriendyException(ErrorCode.UNAUTHORIZED_PASSWORD, "로그인에 실패하였습니다.");
         }
     }
-
 }

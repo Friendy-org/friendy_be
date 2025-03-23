@@ -1,14 +1,6 @@
 package friendy.community.domain.auth.jwt;
 
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import org.assertj.core.data.Percentage;
-import org.hamcrest.number.IsCloseTo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

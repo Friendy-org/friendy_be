@@ -3,7 +3,6 @@ package friendy.community.domain.email.service;
 import friendy.community.domain.email.dto.request.EmailRequest;
 import friendy.community.domain.email.dto.request.VerifyCodeRequest;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

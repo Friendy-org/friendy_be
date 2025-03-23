@@ -4,13 +4,10 @@ import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
-import friendy.community.domain.member.encryption.PasswordEncryptor;
-import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.infra.storage.s3.service.S3service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -65,13 +62,13 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("회원가입이 성공적으로 처리되면 회원 ID를 반환한다")
-    void signUpSuccessfullyReturnsMemberId() {
+    void signupSuccessfullyReturnsMemberId() {
         // Given
         MemberSignUpRequest request = new MemberSignUpRequest(
             "test@email.com", "testNickname", "password123!", LocalDate.parse("2002-08-13"), null
         );
         // When
-        Long memberId = memberService.signUp(request);
+        Long memberId = memberService.signup(request);
         // Then
         assertThat(memberId).isEqualTo(1L);
     }
@@ -104,14 +101,14 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("비밀번호 변경 성공 시 해당 객체의 비밀번호가 변경된다")
-    void resetPasswordSuccessfullyPasswordIsChanged() {
+    void changePasswordSuccessfullyPasswordIsChanged() {
         // Given
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
         PasswordRequest request = new PasswordRequest(savedMember.getEmail(), "newPassword123!");
         String originPassword = savedMember.getPassword();
 
         // When
-        memberService.resetPassword(request);
+        memberService.changePassword(request);
         Member changedMember = authService.getMemberByEmail(savedMember.getEmail());
 
         //Then
@@ -126,7 +123,7 @@ class MemberServiceTest {
         PasswordRequest request = new PasswordRequest("wrongEmail@friendy.com", "newPassword123!");
 
         // When & Then
-        assertThatThrownBy(() -> memberService.resetPassword(request))
+        assertThatThrownBy(() -> memberService.changePassword(request))
             .isInstanceOf(FriendyException.class)
             .hasMessageContaining("해당 이메일의 회원이 존재하지 않습니다.");
     }
@@ -146,7 +143,7 @@ class MemberServiceTest {
         when(s3Service.extractFilePath(anyString())).thenReturn(expectedFilePath);
         when(s3Service.getContentTypeFromS3(anyString())).thenReturn("jpeg");
         // When
-        Long memberId = memberService.signUp(request);
+        Long memberId = memberService.signup(request);
         // Then
         assertThat(memberId).isEqualTo(1L);
         verify(s3Service).moveS3Object(request.imageUrl(), "profile");
@@ -154,7 +151,7 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("회원 조회 요청이 성공하면 FindMemberResponse를 반환한다")
-    void getMemberSuccessfullyReturnsFindMemberResponse() {
+    void getMemberSuccessfullyReturnsFindMemberinfoResponse() {
         // Given
         MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
@@ -162,7 +159,7 @@ class MemberServiceTest {
         Long memberId = savedMember.getId();
 
         // When
-        FindMemberResponse response = memberService.getMember(httpServletRequest, memberId);
+        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, memberId);
 
         // Then
         assertThat(response).isNotNull();
@@ -181,7 +178,7 @@ class MemberServiceTest {
         Long nonExistentMemberId = 999L;
 
         // When & Then
-        assertThatThrownBy(() -> memberService.getMember(httpServletRequest, nonExistentMemberId))
+        assertThatThrownBy(() -> memberService.getMemberInfo(httpServletRequest, nonExistentMemberId))
             .isInstanceOf(FriendyException.class)
             .hasMessageContaining("존재하지 않는 회원입니다.")
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
@@ -189,14 +186,14 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("현재 로그인된 사용자와 조회하는 사용자가 같으면 isMe가 true를 반환한다")
-    void getMemberIdentifiesCurrentUserCorrectly() {
+    void getMemberInfoIdentifiesCurrentUserCorrectly() {
         // Given
         MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
 
         // When
-        FindMemberResponse response = memberService.getMember(httpServletRequest, savedMember.getId());
+        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, savedMember.getId());
 
         // Then
         assertThat(response).isNotNull();
@@ -206,14 +203,14 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("현재 로그인된 사용자와 조회하는 사용자가 다르면 isMe가 false를 반환한다")
-    void getMemberIdentifiesDifferentUserCorrectly() {
+    void getMemberInfoIdentifiesDifferentUserCorrectly() {
         // Given
         MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
         httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
 
         // When
-        FindMemberResponse response = memberService.getMember(httpServletRequest, savedMember.getId());
+        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, savedMember.getId());
 
         // Then
         assertThat(response).isNotNull();

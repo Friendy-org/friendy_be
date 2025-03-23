@@ -2,8 +2,6 @@ package friendy.community.domain.auth.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.response.ExceptionResponse;
-import friendy.community.global.exception.FriendyException;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.security.FriendyUserDetailsService;
 import jakarta.servlet.FilterChain;

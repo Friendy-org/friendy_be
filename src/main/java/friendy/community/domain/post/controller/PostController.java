@@ -23,46 +23,44 @@ public class PostController implements SpringDocPostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> createPost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @Valid @RequestBody PostCreateRequest postCreateRequest
+    public ResponseEntity<FriendyResponse<Void>> createPost(
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @Valid @RequestBody PostCreateRequest postCreateRequest
     ) {
         Long postId = postService.savePost(postCreateRequest, userDetails.getMemberId());
-        return ResponseEntity.created(URI.create("/posts/" + postId)).build();
+        return ResponseEntity.ok(FriendyResponse.of(201, "게시글 생성 성공"));
     }
 
     @PostMapping("/{postId}")
-    public ResponseEntity<Void> updatePost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @PathVariable Long postId,
-        @Valid @RequestBody PostUpdateRequest postUpdateRequest
+    public ResponseEntity<FriendyResponse<Void>> updatePost(
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @PathVariable Long postId,
+            @Valid @RequestBody PostUpdateRequest postUpdateRequest
     ) {
         Long returnPostId = postService.updatePost(postUpdateRequest, userDetails.getMemberId(), postId);
-        return ResponseEntity.created(URI.create("/posts/" + returnPostId)).build();
+        return ResponseEntity.ok(FriendyResponse.of(201, "게시글 수정 성공"));
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @PathVariable Long postId
+    public ResponseEntity<FriendyResponse<Void>> deletePost(
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @PathVariable Long postId
     ) {
         postService.deletePost(userDetails.getMemberId(), postId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 삭제 성공"));
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<FindPostResponse> getPost(
-        @PathVariable Long postId
+    public ResponseEntity<FriendyResponse<FindPostResponse>> getPost(
+            @PathVariable Long postId
     ) {
-        return ResponseEntity.ok(postService.getPost(postId));
+        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 조회 성공", postService.getPost(postId)));
     }
 
     @GetMapping("/list")
     public ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
-        @RequestParam(required = false) Long lastPostId
+            @RequestParam(required = false) Long lastPostId
     ) {
-        FriendyResponse<FindAllPostResponse> response = FriendyResponse.of(200, "회원가입성공",postService.getPostsByLastId(lastPostId));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 목록 조회 성공", postService.getPostsByLastId(lastPostId)));
     }
-
 }
