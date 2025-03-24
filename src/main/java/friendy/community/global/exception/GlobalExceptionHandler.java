@@ -1,9 +1,6 @@
 package friendy.community.global.exception;
 
-import friendy.community.global.exception.domain.BadGatewayException;
-import friendy.community.global.exception.domain.BadRequestException;
-import friendy.community.global.exception.domain.NotFoundException;
-import friendy.community.global.exception.domain.UnAuthorizedException;
+import friendy.community.global.exception.domain.*;
 import friendy.community.global.exception.dto.ErrorResponse;
 import friendy.community.global.exception.dto.ExceptionResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -118,6 +115,13 @@ public class GlobalExceptionHandler {
         log.error("{} : {}", e.getClass(), e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(new ExceptionResponse(e.getExceptionType().getCode(), e.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ExceptionResponse> handleConflictException(final ConflictException e) {
+        log.error("{} : {}", e.getClass(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(new ExceptionResponse(e.getExceptionType().getCode(), e.getMessage()));
     }
 
     private ResponseEntity<ExceptionResponse> buildErrorResponse(
