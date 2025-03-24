@@ -1,10 +1,12 @@
-package friendy.community.infra.storage.s3.service;
+package friendy.community.domain.upload.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import friendy.community.domain.upload.controller.code.UploadExceptionCode;
 import friendy.community.domain.upload.dto.response.UploadResponse;
-import friendy.community.global.exception.ErrorCode;
-import friendy.community.infra.storage.s3.exception.S3exception;
+import friendy.community.domain.upload.exception.S3exception;
+import friendy.community.global.exception.domain.BadRequestException;
+import friendy.community.global.exception.domain.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +25,9 @@ import java.util.UUID;
 public class S3service {
 
     private final AmazonS3 s3Client;
-
+    private final S3exception s3exception;
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-
-    private final S3exception s3exception;
 
     public UploadResponse upload(MultipartFile multipartFile, String dirName) {
         s3exception.validateFile(multipartFile);
@@ -40,9 +40,6 @@ public class S3service {
     public String generateStoredFileName(MultipartFile multipartFile, String dirName) {
         String originalFileName = multipartFile.getOriginalFilename();
 
-        if (originalFileName == null) {
-            throw new FriendyException(ErrorCode.INVALID_FILE ,"파일 이름이 없습니다.");
-        }
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString();
         return dirName + "/" + uuid + extension;
@@ -64,7 +61,7 @@ public class S3service {
             String path = url.getPath();
             return path.substring(1);
         } catch (MalformedURLException e) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "유효한 URL 형식이어야 합니다.");
+            throw new BadRequestException(UploadExceptionCode.INVALID_URL_FORMAT);
         }
     }
 
@@ -73,15 +70,15 @@ public class S3service {
             S3Object object = s3Client.getObject(new GetObjectRequest(bucket, key));
             return object.getObjectMetadata().getContentType();
         } catch (Exception e) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "파일타입을 가져올수 없습니다.");
+            throw new BusinessException(UploadExceptionCode.FILE_TYPE_UNAVAILABLE);
         }
     }
 
     public void deleteFromS3(String s3Key) {
         try {
             s3Client.deleteObject(new DeleteObjectRequest(bucket, s3Key));
-        }catch (AmazonS3Exception e) {
-            throw new FriendyException(ErrorCode.INTERNAL_SERVER_ERROR, "파일을 삭제하지 못햇습니다.");
+        } catch (AmazonS3Exception e) {
+            throw new BusinessException(UploadExceptionCode.FILE_DELETION_FAILED);
         }
     }
 
@@ -91,7 +88,7 @@ public class S3service {
             String path = url.getPath();
             return path.substring(1);
         } catch (MalformedURLException e) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "유효한 URL 형식이어야 합니다.");
+            throw new BadRequestException(UploadExceptionCode.INVALID_URL_FORMAT);
         }
     }
 
@@ -103,20 +100,18 @@ public class S3service {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             s3Client.putObject(bucket, uuidFileName, inputStream, metadata);
         } catch (IOException e) {
-            throw new FriendyException(ErrorCode.FILE_IO_ERROR, "S3 업로드 중 오류 발생");
+            throw new BusinessException(UploadExceptionCode.S3_UPLOAD_ERROR);
         }
         return s3Client.getUrl(bucket, uuidFileName).toString();
     }
 
     private void copyObject(String sourceBucket, String sourceKey, String destinationBucket, String destinationKey) {
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(
-            sourceBucket, sourceKey,
-            destinationBucket, destinationKey);
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(sourceBucket, sourceKey, destinationBucket, destinationKey);
 
         try {
             s3Client.copyObject(copyObjectRequest);
-        } catch (FriendyException e) {
-            throw new FriendyException(ErrorCode.INTERNAL_SERVER_ERROR,"S3 객체 복사에 실패했습니다");
+        } catch (Exception e) {
+            throw new BusinessException(UploadExceptionCode.S3_OBJECT_COPY_FAILED);
         }
     }
 }

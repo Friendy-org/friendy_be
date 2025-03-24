@@ -1,6 +1,7 @@
-package friendy.community.infra.storage.s3.exception;
+package friendy.community.domain.upload.exception;
 
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.domain.upload.controller.code.UploadExceptionCode;
+import friendy.community.global.exception.domain.BadRequestException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,13 +23,13 @@ public class S3exception {
     private void validateMimeType(MultipartFile multipartFile) {
         String contentType = multipartFile.getContentType();
         if (contentType != null && !isAllowedMimeType(contentType)) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "지원되지 않는 파일 형식입니다.");
+            throw new BadRequestException(UploadExceptionCode.INVALID_FILE_FORMAT);
         }
     }
 
     private void validateEmptyFile(MultipartFile multipartFile) {
         if (multipartFile.isEmpty()) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "파일이 비어 있습니다.");
+            throw new BadRequestException(UploadExceptionCode.EMPTY_FILE);
         }
     }
 
@@ -36,24 +37,24 @@ public class S3exception {
         String fileName = multipartFile.getOriginalFilename();
 
         if (fileName == null || fileName.isEmpty()) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "파일 이름이 없습니다.");
+            throw new BadRequestException(UploadExceptionCode.MISSING_FILE_NAME);
         }
 
         if (!fileName.contains(".")) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "지원되지 않는 파일 확장자입니다.");
+            throw new BadRequestException(UploadExceptionCode.UNSUPPORTED_FILE_EXTENSION);
         }
 
         String[] allowedExtensions = {"jpg", "png", "gif", "pdf"};
         String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase(); // 확장자 추출
 
         if (!Arrays.asList(allowedExtensions).contains(fileExtension)) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "지원되지 않는 파일 확장자입니다.");
+            throw new BadRequestException(UploadExceptionCode.UNSUPPORTED_FILE_EXTENSION);
         }
     }
 
     private void validateFileSize(MultipartFile multipartFile) {
         if (multipartFile.getSize() > MAX_FILE_SIZE) {
-            throw new FriendyException(ErrorCode.INVALID_FILE, "파일 크기가 허용된 범위를 초과했습니다.");
+            throw new BadRequestException(UploadExceptionCode.FILE_SIZE_EXCEEDED);
         }
     }
 
