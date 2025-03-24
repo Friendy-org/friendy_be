@@ -1,8 +1,9 @@
 package friendy.community.domain.upload.controller;
 
+import friendy.community.domain.upload.controller.code.UploadSuccessCode;
 import friendy.community.domain.upload.dto.response.UploadResponse;
 import friendy.community.global.response.FriendyResponse;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.domain.upload.service.S3service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +22,7 @@ public class UploadController implements SpringDocUploadController {
 
     @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<FriendyResponse<UploadResponse>> uploadMultipleFile(@RequestPart(value = "file") MultipartFile multipartFile) {
-        return ResponseEntity.ok(FriendyResponse.of(200,
-                "이미지 업로드 성공",
+        return ResponseEntity.ok(FriendyResponse.of(UploadSuccessCode.IMAGE_UPLOAD_SUCCESS,
                 s3service.upload(multipartFile,"temp")));
     }
 }
