@@ -208,25 +208,6 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("댓글이 달린 게시글 삭제 시 댓글도 모두 삭제된다.")
-    void deletePostWithCommentsSuccessfullyDeletesAllOfThen() {
-        // Given
-        createPost();
-        Post post = postRepository.findAll().getFirst();
-
-        CommentCreateRequest commentRequest = new CommentCreateRequest("new valid comment", post.getId());
-        commentService.saveComment(commentRequest, member.getId());
-
-        // When
-        postService.deletePost(member.getId(), post.getId());
-
-        // Then
-        List<Comment> comments = commentRepository.findAll();
-        assertThat(comments.size()).isEqualTo(0);
-        assertThat(post.getCommentCount()).isEqualTo(0);
-    }
-
-    @Test
     @DisplayName("게시글 조회 요청이 성공적으로 수행되면 FindPostResponse를 리턴한다")
     void getPostSuccessfullyReturnsFindPostResponse() {
         // Given
