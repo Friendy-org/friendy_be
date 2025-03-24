@@ -1,12 +1,13 @@
 package friendy.community.domain.follow.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import friendy.community.domain.follow.controller.code.FollowExceptionCode;
 import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.dto.response.FollowMemberResponse;
 import friendy.community.domain.follow.model.Follow;
 import friendy.community.domain.member.model.QMember;
 import friendy.community.domain.member.model.QMemberImage;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -35,7 +36,7 @@ public class FollowQueryDSLRepository {
             .fetch();
 
         if (follows.isEmpty()) {
-            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "팔로잉멤버가 없습니다.");
+            throw new NotFoundException(FollowExceptionCode.FOLLOWING_MEMBER_NOT_FOUND);
         }
 
         boolean hasNext = follows.size() > size;
@@ -66,7 +67,7 @@ public class FollowQueryDSLRepository {
             .fetch();
 
         if (follows.isEmpty()) {
-            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "팔로워가 없습니다.");
+            throw new NotFoundException(FollowExceptionCode.FOLLOWER_MEMBER_NOT_FOUND);
         }
 
 
