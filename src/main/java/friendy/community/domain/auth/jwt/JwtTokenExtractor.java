@@ -1,6 +1,7 @@
 package friendy.community.domain.auth.jwt;
 
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,7 @@ public class JwtTokenExtractor {
         if (StringUtils.hasText(refreshToken) && refreshToken.startsWith(PREFIX_BEARER)) {
             return refreshToken.substring(PREFIX_BEARER.length());
         }
-        final String logMessage = "인증 실패(리프레시 토큰 추출 실패) - 토큰 : " + refreshToken;
-        throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+        throw new UnAuthorizedException(AuthExceptionCode.REFRESH_TOKEN_EXTRACTION_FAILED);
     }
 
 }

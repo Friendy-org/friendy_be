@@ -1,6 +1,7 @@
 package friendy.community.domain.auth.jwt;
 
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +47,7 @@ public class JwtTokenProvider {
         final Jws<Claims> claimsJws = getAccessTokenParser().parseClaimsJws(token);
         final String extractedEmail = claimsJws.getBody().get(EMAIL_KEY, String.class);
         if (extractedEmail == null) {
-            final String logMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new UnAuthorizedException(AuthExceptionCode.ACCESS_TOKEN_EMAIL_MISSING);
         }
         return extractedEmail;
     }
@@ -57,8 +57,7 @@ public class JwtTokenProvider {
         final Jws<Claims> claimsJws = getRefreshTokenParser().parseClaimsJws(token);
         final String extractedEmail = claimsJws.getBody().get(EMAIL_KEY, String.class);
         if (extractedEmail == null) {
-            final String logMessage = "인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new UnAuthorizedException(AuthExceptionCode.REFRESH_TOKEN_EMAIL_MISSING);
         }
         validateUserAuthorization(extractedEmail);
         return extractedEmail;
@@ -67,14 +66,19 @@ public class JwtTokenProvider {
     public void validateAccessToken(final String token) {
         try {
             final Claims claims = getAccessTokenParser().parseClaimsJws(token).getBody();
-        } catch (MalformedJwtException | UnsupportedJwtException e) {
-            throw new FriendyException(ErrorCode.INVALID_TOKEN, "유효하지 않은 JWT 토큰 형식입니다.");
+        } catch (MalformedJwtException e) {
+            throw new UnAuthorizedException(AuthExceptionCode.MALFORMED_ACCESS_TOKEN);
+        } catch (UnsupportedJwtException e) {
+            throw new UnAuthorizedException(AuthExceptionCode.UNSUPPORTED_ACCESS_TOKEN);
         } catch (ExpiredJwtException e) {
-            throw new FriendyException(ErrorCode.EXPIRED_TOKEN, "만료된 토큰입니다.");
+            throw new UnAuthorizedException(AuthExceptionCode.EXPIRED_ACCESS_TOKEN);
+        } catch (IllegalArgumentException e) {
+            throw new UnAuthorizedException(AuthExceptionCode.EMPTY_ACCESS_TOKEN);
         } catch (JwtException e) {
-            throw new FriendyException(ErrorCode.INVALID_TOKEN, "JWT 토큰 검증 중 오류가 발생했습니다.");
+            throw new UnAuthorizedException(AuthExceptionCode.INVALID_ACCESS_TOKEN);
         }
     }
+
 
     public void deleteRefreshToken(final String email) {
         validateUserAuthorization(email);
@@ -85,18 +89,16 @@ public class JwtTokenProvider {
         try {
             final Claims claims = getRefreshTokenParser().parseClaimsJws(token).getBody();
         } catch (MalformedJwtException | UnsupportedJwtException e) {
-            final String logMessage = "인증 실패(잘못된 리프레시 토큰) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new UnAuthorizedException(AuthExceptionCode.INVALID_REFRESH_TOKEN);
         } catch (ExpiredJwtException e) {
-            final String logMessage = "인증 실패(만료된 리프레시 토큰) - 토큰 : " + token;
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new UnAuthorizedException(AuthExceptionCode.EXPIRED_REFRESH_TOKEN);
         }
     }
 
     private void validateUserAuthorization(final String email) {
         if (Boolean.FALSE.equals(redisTemplate.hasKey(email))) {
             final String logMessage = "로그인 되어있지 않은 사용자입니다.";
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, logMessage);
+            throw new UnAuthorizedException(AuthExceptionCode.USER_NOT_LOGGED_IN);
         }
     }
 
