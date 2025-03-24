@@ -25,11 +25,6 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "댓글 내용 길이 초과", exampleMessage = "댓글은 1100자 이내로 작성해주세요."),
             @ErrorCase(description = "댓글 작성 대상 게시글 누락", exampleMessage = "댓글이 달릴 게시글이 명시되지 않았습니다."),
     })
-    @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다.")
-    })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments", errorCases = {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다.")
     })
@@ -45,9 +40,6 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "댓글 내용 길이 초과", exampleMessage = "댓글은 1100자 이내로 작성해주세요.")
     })
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments/{commentId}", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다."),
             @ErrorCase(description = "다른 사용자의 댓글 수정 시도", exampleMessage = "작성자만 댓글을 수정할 수 있습니다.")
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/{commentId}", errorCases = {
@@ -67,11 +59,6 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "답글 작성 대상 게시글 누락", exampleMessage = "답글이 달릴 게시글이 명시되지 않았습니다."),
             @ErrorCase(description = "답글 작성 대상 댓글 누락", exampleMessage = "답글이 달릴 댓글이 명시되지 않았습니다."),
     })
-    @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments/reply", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다.")
-    })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply", errorCases = {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "댓글 작성 대상 게시글이 존재하지 않습니다."),
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
@@ -88,9 +75,6 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "답글 내용 길이 초과", exampleMessage = "답글은 1100자 이내로 작성해주세요.")
     })
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments/reply/{commentId}", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다."),
             @ErrorCase(description = "다른 사용자의 답글 수정 시도", exampleMessage = "작성자만 답글을 수정할 수 있습니다.")
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply/{commentId}", errorCases = {
@@ -105,9 +89,6 @@ public interface SpringDocCommentController {
     @Operation(summary = "댓글 삭제")
     @ApiResponse(responseCode = "200", description = "댓글 삭제 성공")
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments/{commentId}", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다."),
             @ErrorCase(description = "다른 사용자의 댓글 삭제 시도", exampleMessage = "작성자만 댓글을 수정할 수 있습니다.")
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/{commentId}", errorCases = {
@@ -121,9 +102,6 @@ public interface SpringDocCommentController {
     @Operation(summary = "답글 삭제")
     @ApiResponse(responseCode = "200", description = "답글 삭제 성공")
     @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/comments/reply/{replyId}", errorCases = {
-            @ErrorCase(description = "액세스 토큰 추출 실패", exampleMessage = "인증 실패(액세스 토큰 추출 실패) - 토큰 : {token}"),
-            @ErrorCase(description = "JWT 액세스 토큰 Payload 이메일 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
-            @ErrorCase(description = "조작된 액세스 토큰", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다."),
             @ErrorCase(description = "다른 사용자의 답글 삭제 시도", exampleMessage = "작성자만 답글을 수정할 수 있습니다.")
     })
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply/{replyId}", errorCases = {
