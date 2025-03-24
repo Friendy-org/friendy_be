@@ -1,6 +1,8 @@
 package friendy.community.domain.auth.controller;
 
 import friendy.community.domain.auth.dto.request.LoginRequest;
+import friendy.community.domain.auth.dto.response.TokenResponse;
+import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +36,7 @@ public interface SpringDocAuthController {
             @ErrorCase(description = "이메일 불일치", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다."),
             @ErrorCase(description = "비밀번호 불일치", exampleMessage = "로그인에 실패하였습니다. 비밀번호를 확인해주세요."),
     })
-    ResponseEntity<Void> login(LoginRequest request);
+    ResponseEntity<FriendyResponse<TokenResponse>> login(LoginRequest request);
 
     @Operation(
             summary = "로그아웃",
@@ -51,7 +53,7 @@ public interface SpringDocAuthController {
             @ErrorCase(description = "액세스 토큰에 이메일 클레임 누락", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
             @ErrorCase(description = "로그아웃 상태인 사용자가 요청", exampleMessage = "로그인 되어있지 않은 사용자입니다.")
     })
-    ResponseEntity<Void> logout(HttpServletRequest httpServletRequest);
+    ResponseEntity<FriendyResponse<Void>> logout(HttpServletRequest httpServletRequest);
 
     @Operation(
             summary = "토큰 재발급",
@@ -72,7 +74,7 @@ public interface SpringDocAuthController {
             @ErrorCase(description = "리프레시 토큰에 이메일 클레임 없음", exampleMessage = "인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : {token}"),
             @ErrorCase(description = "로그아웃 상태인 사용자가 요청", exampleMessage = "로그인 되어있지 않은 사용자입니다.")
     })
-    ResponseEntity<Void> reissueToken(HttpServletRequest httpServletRequest);
+    ResponseEntity<FriendyResponse<TokenResponse>> reissueToken(HttpServletRequest httpServletRequest);
 
     @Operation(
             summary = "회원 탈퇴",
@@ -89,5 +91,5 @@ public interface SpringDocAuthController {
             @ErrorCase(description = "액세스 토큰에 이메일 클레임 없음", exampleMessage = "인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : {token}"),
             @ErrorCase(description = "로그아웃 상태인 사용자가 요청", exampleMessage = "로그인 되어있지 않은 사용자입니다.")
     })
-    ResponseEntity<Void> withdrawal(HttpServletRequest httpServletRequest);
+    ResponseEntity<FriendyResponse<Void>> withdrawal(HttpServletRequest httpServletRequest);
 }
