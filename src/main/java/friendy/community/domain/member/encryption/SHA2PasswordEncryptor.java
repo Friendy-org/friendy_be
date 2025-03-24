@@ -1,6 +1,7 @@
 package friendy.community.domain.member.encryption;
 
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.domain.member.controller.code.MemberExceptionCode;
+import friendy.community.global.exception.domain.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
@@ -8,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 @Component
-public class SHA2PasswordEncryptor implements PasswordEncryptor{
+public class SHA2PasswordEncryptor implements PasswordEncryptor {
 
     private final MessageDigest digest;
 
@@ -16,7 +17,7 @@ public class SHA2PasswordEncryptor implements PasswordEncryptor{
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new FriendyException(ErrorCode.INTERNAL_SERVER_ERROR, "암호화 알고리즘이 잘못 명시되었습니다.");
+            throw new BadRequestException(MemberExceptionCode.INVALID_ENCRYPTION_ALGORITHM);
         }
     }
 

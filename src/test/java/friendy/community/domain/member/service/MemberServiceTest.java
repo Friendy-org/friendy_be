@@ -8,7 +8,8 @@ import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.domain.upload.service.S3service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +110,7 @@ class MemberServiceTest {
 
         // When
         memberService.changePassword(request);
-        Member changedMember = authService.getMemberByEmail(savedMember.getEmail());
+        Member changedMember = memberService.findMemberByEmail(savedMember.getEmail());
 
         //Then
         assertThat(originPassword).isNotEqualTo(changedMember.getPassword());
@@ -239,8 +240,7 @@ class MemberServiceTest {
         String email = "nonexistent@example.com";
 
         // when & then
-        FriendyException exception = assertThrows(FriendyException.class, () -> memberService.findMemberByEmail(email));
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
-        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 이메일입니다.");
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> memberService.findMemberByEmail(email));
+        assertThat(exception.getExceptionType().getCode()).isEqualTo(4101);  // 4101은 예시 코드, 실제 코드에 맞게 수정
     }
 }

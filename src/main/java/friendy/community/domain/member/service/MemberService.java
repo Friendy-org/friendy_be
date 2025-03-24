@@ -3,6 +3,7 @@ package friendy.community.domain.member.service;
 import friendy.community.domain.auth.jwt.JwtTokenExtractor;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.member.controller.code.MemberExceptionCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
@@ -11,9 +12,9 @@ import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
-import friendy.community.global.exception.domain.BadRequestException;
-import friendy.community.global.exception.ErrorCode;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.global.exception.domain.ConflictException;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.domain.upload.service.S3service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,6 @@ public class MemberService {
     private final PasswordEncryptor passwordEncryptor;
     private final JwtTokenExtractor jwtTokenExtractor;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthService authService;
     private final S3service s3service;
 
     public Long signup(MemberSignUpRequest request) {
@@ -47,7 +47,7 @@ public class MemberService {
     }
 
     public void changePassword(PasswordRequest request) {
-        Member member = authService.getMemberByEmail(request.email());
+        Member member = findMemberByEmail(request.email());
 
         final String salt = saltGenerator.generate();
         final String encryptedPassword = passwordEncryptor.encrypt(request.newPassword(), salt);
@@ -73,24 +73,24 @@ public class MemberService {
 
     public void assertUniqueEmail(String email) {
         if (memberRepository.existsByEmail(email)) {
-            throw new BadRequestException(ErrorCode.DUPLICATE_EMAIL, "이미 가입된 이메일입니다.");
+            throw new ConflictException(MemberExceptionCode.DUPLICATE_EMAIL_EXCEPTION);
         }
     }
 
     public void assertUniqueName(String name) {
         if (memberRepository.existsByNickname(name)) {
-            throw new FriendyException(ErrorCode.DUPLICATE_NICKNAME, "닉네임이 이미 존재합니다.");
+            throw new ConflictException(MemberExceptionCode.DUPLICATE_NICKNAME_EXCEPTION);
         }
     }
 
     public Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 회원입니다."));
+            .orElseThrow(() -> new NotFoundException(MemberExceptionCode.USER_NOT_FOUND_EXCEPTION));
     }
 
     public Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 이메일입니다."));
+            .orElseThrow(() -> new NotFoundException(MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION));
     }
 
     private boolean isCurrentUser(Member member, String email) {
