@@ -1,5 +1,6 @@
 package friendy.community.domain.comment.service;
 
+import friendy.community.domain.comment.controller.code.CommentExceptionCode;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
@@ -11,7 +12,8 @@ import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -93,26 +95,26 @@ public class CommentService {
 
     private void validateAuthor(final Comment comment, final Member member) {
         if (!member.equals(comment.getMember()))
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 댓글을 수정할 수 있습니다.");
+            throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_COMMENT_USER);
     }
 
     private void validateAuthor(final Reply reply, final Member member) {
         if (!member.equals(reply.getMember()))
-            throw new FriendyException(ErrorCode.UNAUTHORIZED_USER, "작성자만 답글을 수정할 수 있습니다.");
+            throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_REPLY_USER);
     }
 
     private Comment getCommentByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 댓글입니다."));
+            .orElseThrow(() -> new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND));
     }
 
     private Reply getReplyByReplyId(final Long replyId) {
         return replyRepository.findById(replyId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 답글입니다."));
+            .orElseThrow(() -> new NotFoundException(CommentExceptionCode.REPLY_NOT_FOUND));
     }
 
     private Post getPostByPostId(final Long postId) {
         return postRepository.findById(postId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "댓글 작성 대상 게시글이 존재하지 않습니다."));
+            .orElseThrow(() -> new NotFoundException(CommentExceptionCode.POST_NOT_FOUND));
     }
 }

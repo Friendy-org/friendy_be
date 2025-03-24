@@ -1,5 +1,6 @@
 package friendy.community.domain.comment.controller;
 
+import friendy.community.domain.comment.controller.code.CommentSuccessCode;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
@@ -25,7 +26,7 @@ public class CommentController implements SpringDocCommentController {
         @Valid @RequestBody CommentCreateRequest commentRequest
     ) {
         commentService.saveComment(commentRequest, userDetails.getMemberId());
-        return ResponseEntity.ok(FriendyResponse.of(201, "댓글 작성 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.COMMENT_CREATE_SUCCESS));
     }
 
     @PostMapping("/reply")
@@ -34,7 +35,7 @@ public class CommentController implements SpringDocCommentController {
         @Valid @RequestBody ReplyCreateRequest replyRequest
     ) {
         commentService.saveReply(replyRequest, userDetails.getMemberId());
-        return ResponseEntity.ok(FriendyResponse.of(201, "답글 작성 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.REPLY_CREATE_SUCCESS));
     }
 
     @PostMapping("/{commentId}")
@@ -44,7 +45,7 @@ public class CommentController implements SpringDocCommentController {
         @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
         commentService.updateComment(commentUpdateRequest, commentId, userDetails.getMemberId());
-        return ResponseEntity.ok(FriendyResponse.of(200, "댓글 수정 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.COMMENT_UPDATE_SUCCESS));
     }
 
     @PostMapping("/reply/{replyId}")
@@ -54,7 +55,7 @@ public class CommentController implements SpringDocCommentController {
         @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
         commentService.updateReply(commentUpdateRequest, replyId, userDetails.getMemberId());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.REPLY_UPDATE_SUCCESS));
     }
 
     @DeleteMapping("/{commentId}")
