@@ -1,5 +1,6 @@
 package friendy.community.domain.post.controller;
 
+import friendy.community.domain.post.controller.code.PostSuccessCode;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
@@ -13,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts")
@@ -24,43 +23,43 @@ public class PostController implements SpringDocPostController {
 
     @PostMapping
     public ResponseEntity<FriendyResponse<Void>> createPost(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
-            @Valid @RequestBody PostCreateRequest postCreateRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @Valid @RequestBody PostCreateRequest postCreateRequest
     ) {
         Long postId = postService.savePost(postCreateRequest, userDetails.getMemberId());
-        return ResponseEntity.ok(FriendyResponse.of(201, "게시글 생성 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.CREATE_POST_SUCCESS));
     }
 
     @PostMapping("/{postId}")
     public ResponseEntity<FriendyResponse<Void>> updatePost(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
-            @PathVariable Long postId,
-            @Valid @RequestBody PostUpdateRequest postUpdateRequest
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long postId,
+        @Valid @RequestBody PostUpdateRequest postUpdateRequest
     ) {
         Long returnPostId = postService.updatePost(postUpdateRequest, userDetails.getMemberId(), postId);
-        return ResponseEntity.ok(FriendyResponse.of(201, "게시글 수정 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.UPDATE_POST_SUCCESS));
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<FriendyResponse<Void>> deletePost(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
-            @PathVariable Long postId
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long postId
     ) {
         postService.deletePost(userDetails.getMemberId(), postId);
-        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 삭제 성공"));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.DELETE_POST_SUCCESS));
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<FriendyResponse<FindPostResponse>> getPost(
-            @PathVariable Long postId
+        @PathVariable Long postId
     ) {
-        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 조회 성공", postService.getPost(postId)));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.GET_POST_SUCCESS, postService.getPost(postId)));
     }
 
     @GetMapping("/list")
     public ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
-            @RequestParam(required = false) Long lastPostId
+        @RequestParam(required = false) Long lastPostId
     ) {
-        return ResponseEntity.ok(FriendyResponse.of(200, "게시글 목록 조회 성공", postService.getPostsByLastId(lastPostId)));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.GET_ALL_POSTS_SUCCESS, postService.getPostsByLastId(lastPostId)));
     }
 }

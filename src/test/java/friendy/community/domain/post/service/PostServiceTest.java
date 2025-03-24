@@ -17,7 +17,7 @@ import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.ErrorCode;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.domain.upload.service.S3service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;

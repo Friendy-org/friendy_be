@@ -6,6 +6,7 @@ import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.hashtag.service.HashtagService;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.post.controller.code.PostExceptionCode;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
@@ -13,7 +14,8 @@ import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -72,7 +74,7 @@ public class PostService {
 
     public FindPostResponse getPost(final Long postId) {
         Post post = postQueryDSLRepository.findPostById(postId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
+            .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
 
         return FindPostResponse.from(post);
     }
@@ -83,12 +85,12 @@ public class PostService {
 
     private Post validatePostExistence(Long postId) {
         return postRepository.findById(postId)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
+            .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
     }
 
     private void validatePostAuthor(Member member, Post post) {
         if (!post.getMember().getId().equals(member.getId())) {
-            throw new FriendyException(ErrorCode.FORBIDDEN_ACCESS, "게시글은 작성자 본인만 관리할 수 있습니다.");
+            throw new UnAuthorizedException(PostExceptionCode.POST_FORBIDDEN_ACCESS);
         }
     }
 }
