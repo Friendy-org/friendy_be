@@ -3,7 +3,7 @@ package friendy.community.domain.post.service;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.model.PostImage;
 import friendy.community.domain.post.repository.PostImageRepository;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.domain.upload.service.S3service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

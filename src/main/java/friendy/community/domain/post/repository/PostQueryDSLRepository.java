@@ -2,12 +2,13 @@ package friendy.community.domain.post.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import friendy.community.domain.member.model.QMember;
+import friendy.community.domain.post.controller.code.PostExceptionCode;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.model.QPost;
 import friendy.community.domain.post.model.QPostImage;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -43,7 +44,7 @@ public class PostQueryDSLRepository {
             .fetch();
 
         if (posts.isEmpty()) {
-            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "게시글이 없습니다.");
+            throw new NotFoundException(PostExceptionCode.POST_NOT_FOUND);
         }
 
         boolean hasNext = posts.size() > size;
