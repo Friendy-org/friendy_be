@@ -1,5 +1,6 @@
 package friendy.community.infra.storage.s3.exception;
 
+import friendy.community.domain.upload.exception.S3exception;
 import friendy.community.global.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;

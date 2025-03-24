@@ -3,7 +3,7 @@ package friendy.community.domain.upload.controller;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
-import friendy.community.infra.storage.s3.service.S3service;
+import friendy.community.domain.upload.service.S3service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
