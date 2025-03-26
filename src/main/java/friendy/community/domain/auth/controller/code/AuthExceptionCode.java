@@ -20,7 +20,9 @@ public enum AuthExceptionCode implements ExceptionCode {
     INVALID_ACCESS_TOKEN(4110, "JWT 액세스 토큰 검증 중 알 수 없는 오류가 발생했습니다."),
     INVALID_REFRESH_TOKEN(4111, "잘못된 리프레시 토큰"),
     EXPIRED_REFRESH_TOKEN(4112, "만료된 리프레시 토큰"),
-    USER_NOT_LOGGED_IN(4113, "사용자가 로그인되지 않았습니다.");
+    USER_NOT_LOGGED_IN(4113, "사용자가 로그인되지 않았습니다."),
+    EMAIL_NOT_REGISTERED(4114,"이메일이 존재하지 않습니다."),
+    INVALID_PASSWORD(4115, "비밀번호가 올바르지 않습니다.");
 
     private final int code;
     private final String message;
