@@ -1,4 +1,4 @@
-package friendy.community.domain.upload.exception;
+package friendy.community.domain.upload.service;
 
 import friendy.community.domain.upload.controller.code.UploadExceptionCode;
 import friendy.community.global.exception.domain.BadRequestException;
@@ -22,7 +22,7 @@ public class S3exception {
 
     private void validateMimeType(MultipartFile multipartFile) {
         String contentType = multipartFile.getContentType();
-        if (contentType != null && !isAllowedMimeType(contentType)) {
+        if (contentType == null || !isAllowedMimeType(contentType)) {
             throw new BadRequestException(UploadExceptionCode.INVALID_FILE_FORMAT);
         }
     }
