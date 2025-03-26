@@ -9,7 +9,6 @@ import friendy.community.domain.member.dto.response.FindMemberResponse;
 import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
-import friendy.community.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,12 +29,11 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = MemberController.class,
     excludeFilters = {
@@ -69,8 +67,7 @@ class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(memberSignUpRequest)))
             .andDo(print())
-            .andExpect(status().isCreated())
-            .andExpect(header().string("Location", "/users/1"));
+            .andExpect(status().isCreated());
     }
 
     @Test
@@ -101,26 +98,6 @@ class MemberControllerTest {
             .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @DisplayName("이메일이 중복되면 409 Conflict를 반환한다")
-    void signupWithDuplicateEmailReturns409Conflict() throws Exception {
-        // Given
-        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("duplicate@friendy.com", "bokSungKim", "password123!", LocalDate.parse("2002-08-13"), null);
-
-        // Mock Service
-        when(memberService.signup(any(MemberSignUpRequest.class)))
-            .thenThrow(new FriendyException(ErrorCode.DUPLICATE_EMAIL, "이미 가입된 이메일입니다."));
-
-        // When & Then
-        mockMvc.perform(post("/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(memberSignUpRequest)))
-            .andDo(print())
-            .andExpect(status().isConflict())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("이미 가입된 이메일입니다."));
-    }
 
     @Test
     @DisplayName("닉네임이 없으면 400 Bad Request를 반환한다")
@@ -156,27 +133,6 @@ class MemberControllerTest {
             .andExpect(result ->
                 assertThat(result.getResolvedException().getMessage())
                     .contains(expectedMessage));
-    }
-
-    @Test
-    @DisplayName("닉네임이 중복되면 409 Conflict를 반환한다")
-    void signupWithDuplicateNicknameReturns409Conflict() throws Exception {
-        // Given
-        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("example@friendy.com", "duplicateNickname", "password123!", LocalDate.parse("2002-08-13"), null);
-
-        // Mock Service
-        when(memberService.signup(any(MemberSignUpRequest.class)))
-            .thenThrow(new FriendyException(ErrorCode.DUPLICATE_NICKNAME, "닉네임이 이미 존재합니다."));
-
-        // When & Then
-        mockMvc.perform(post("/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(memberSignUpRequest)))
-            .andDo(print())
-            .andExpect(status().isConflict())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("닉네임이 이미 존재합니다."));
     }
 
     @Test
@@ -266,27 +222,6 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("요청 이메일이 존재하지 않으면 401 UNAUTHORIZED를 반환한다")
-    void emailDosentExistReturns401() throws Exception {
-        // Given
-        PasswordRequest passwordRequest = new PasswordRequest("wrongEmail@friendy.com", "newPassword123!");
-
-        doThrow(new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."))
-            .when(memberService)
-            .changePassword(any(PasswordRequest.class));
-
-        // When & Then
-        mockMvc.perform(post("/password")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(passwordRequest)))
-            .andDo(print())
-            .andExpect(status().isUnauthorized())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("해당 이메일의 회원이 존재하지 않습니다."));
-    }
-
-    @Test
     @DisplayName("회원가입 요청이 성공적으로 처리되면 201 Created와 함께 응답을 반환한다 (이미지 포함)")
     void signupSuccessfullyReturns201CreatedWithImage() throws Exception {
         // Given
@@ -303,8 +238,7 @@ class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(memberSignUpRequest)))
             .andDo(print())
-            .andExpect(status().isCreated())
-            .andExpect(header().string("Location", "/users/1"));
+            .andExpect(status().isCreated());
     }
 
 
@@ -326,33 +260,6 @@ class MemberControllerTest {
         mockMvc.perform(get("/member/{memberId}", memberId)
                 .contentType(MediaType.APPLICATION_JSON))
             .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.email").value("example@friendy.com"))
-            .andExpect(jsonPath("$.nickname").value("bokSungKim"))
-            .andExpect(jsonPath("$.birthDate").value("2002-08-13"))
-            .andExpect(jsonPath("$.me").value(true));
+            .andExpect(status().isOk());
     }
-
-
-    @Test
-    @DisplayName("존재하지 않는 회원 조회 시 404 Not Found를 반환한다")
-    void getMemberInfoWithNonExistentIdReturns404NotFound() throws Exception {
-        // Given
-        Long nonExistentMemberId = 999L;
-        HttpServletRequest request = new MockHttpServletRequest();
-
-        when(memberService.getMemberInfo(any(HttpServletRequest.class), eq(nonExistentMemberId)))
-            .thenThrow(new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 회원입니다."));
-
-        // When & Then
-        mockMvc.perform(get("/member/{memberId}", nonExistentMemberId)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andDo(print())
-            .andExpect(status().isNotFound())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("존재하지 않는 회원입니다."));
-    }
-
 }

@@ -1,7 +1,5 @@
 package friendy.community.domain.post.service;
 
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
@@ -9,6 +7,7 @@ import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.post.controller.code.PostExceptionCode;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
@@ -16,8 +15,9 @@ import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
-import friendy.community.global.exception.ErrorCode;
 import friendy.community.domain.upload.service.S3service;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,8 +33,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -126,12 +124,9 @@ class PostServiceTest {
         PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"), null);
 
         // When
-        Long postId = postService.updatePost(request, member.getId(), 1L);
-        Post updatedPost = postRepository.findById(1L)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
-
+        postService.updatePost(request, member.getId(), 1L);
+        Post updatedPost = postService.getPostById(1L);
         // Then
-        assertThat(postId).isEqualTo(1L);
         assertThat(updatedPost.getContent()).isEqualTo("Updated content");
     }
 
@@ -143,9 +138,8 @@ class PostServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postService.updatePost(request, member.getId(), 999L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 게시글입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
     }
 
     @Test
@@ -160,9 +154,8 @@ class PostServiceTest {
         // Then
         assertThatThrownBy(() -> postService.updatePost(
             new PostUpdateRequest("Updated content", List.of("업데이트"), null), 2L, 1L), null)
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("게시글은 작성자 본인만 관리할 수 있습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN_ACCESS);
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_FORBIDDEN_ACCESS);
     }
 
     @Test
@@ -186,9 +179,8 @@ class PostServiceTest {
     void throwsExceptionWhenPostNotFoundOnDelete() {
         // When & Then
         assertThatThrownBy(() -> postService.deletePost(member.getId(), 999L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 게시글입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
     }
 
     @Test
@@ -202,9 +194,8 @@ class PostServiceTest {
 
         // Then
         assertThatThrownBy(() -> postService.deletePost(2L, 1L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("게시글은 작성자 본인만 관리할 수 있습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN_ACCESS);
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_FORBIDDEN_ACCESS);
     }
 
     @Test
@@ -226,8 +217,8 @@ class PostServiceTest {
     void getPostWithNonExistentIdThrowsException() {
         // When & Then
         assertThatThrownBy(() -> postService.getPost(999L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 게시글입니다.");
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
     }
 
     @Test
@@ -250,12 +241,14 @@ class PostServiceTest {
     @Test
     @DisplayName("게시글이 없을 경우 예외가 발생한다.")
     void testGetPostsByLastIdThrowsExceptionWhenNoPosts() {
-        FriendyException exception = assertThrows(FriendyException.class, () -> {
-            postService.getPostsByLastId(null);
-        });
+        // when & then
+        assertThatThrownBy(() -> postService.getPostsByLastId(null))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
 
-        // 예외 메시지 확인
-        assertEquals("게시글이 없습니다.", exception.getMessage());
+        assertThatThrownBy(() -> postService.getPostById(999L))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
     }
 
     @Test
@@ -287,12 +280,10 @@ class PostServiceTest {
             List.of("https://example.com/image1.jpg", "https://example.com/image3.jpg", "https://s3.us-east-1.amazonaws.com/post/image.jpg"));
 
         // When
-        Long postId = postService.updatePost(request, member.getId(), 1L);
-        Post updatedPost = postRepository.findById(1L)
-            .orElseThrow(() -> new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
-
+        postService.updatePost(request, member.getId(), 1L);
+        Post updatePost = postService.getPostById(1L);
         // Then
-        assertThat(postId).isEqualTo(1L);
-        assertThat(updatedPost.getContent()).isEqualTo("Updated content");
+        assertThat(updatePost.getContent()).isEqualTo("Updated content");
     }
+
 }

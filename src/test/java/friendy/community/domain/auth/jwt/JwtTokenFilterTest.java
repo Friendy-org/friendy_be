@@ -1,10 +1,13 @@
 package friendy.community.domain.auth.jwt;
 
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
+import friendy.community.domain.member.controller.code.MemberExceptionCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +25,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static friendy.community.domain.auth.fixtures.TokenFixtures.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
+import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN_WITHOUT_BEARER;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -90,35 +94,28 @@ class JwtTokenFilterTest {
     @DisplayName("사용자가 이메일을 찾을 수 없으면 예외가 발생한다.")
     void shouldThrowExceptionWhenUserNotFound() {
         // Given
-        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(CORRECT_ACCESS_TOKEN);
-        when(jwtTokenProvider.extractEmailFromAccessToken(CORRECT_ACCESS_TOKEN)).thenReturn(null);
+        when(jwtTokenProvider.extractEmailFromAccessToken(CORRECT_ACCESS_TOKEN))
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.ACCESS_TOKEN_EMAIL_MISSING));
 
-        // When
-        FriendyException exception = assertThrows(FriendyException.class, () -> {
+        // When & Then
+        assertThrows(UnAuthorizedException.class, () -> {
             jwtTokenFilter.setAuthentication(CORRECT_ACCESS_TOKEN);
         });
-
-        //Then
-        assertEquals("이메일 사용자가 없습니다.", exception.getMessage());
     }
 
     @Test
-    @DisplayName("이메일 정보가 없는 JWT 토큰일 경우 예외가 발생한다.")
-    void shouldThrowExceptionWhenEmailNotFound() {
+    @DisplayName("db에 이메일이없으면 예외를 던진다.")
+    void shouldThrowNotFoundExceptionWhenEmailNotFoundInDb() {
         // Given
-        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(ACCESS_TOKEN_WITHOUT_EMAIL);
-        when(jwtTokenProvider.extractEmailFromAccessToken(ACCESS_TOKEN_WITHOUT_EMAIL)).thenReturn("invalid@domain.com");
-        doThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "이메일 정보가 포함되지 않은 JWT 토큰입니다."))
-            .when(jwtTokenProvider).extractEmailFromAccessToken(ACCESS_TOKEN_WITHOUT_EMAIL);
+        String nonExistentEmail = "nonfoundemail@example.com";
+        when(jwtTokenProvider.extractEmailFromAccessToken(CORRECT_ACCESS_TOKEN)).thenReturn(nonExistentEmail);
 
-        // When
-        FriendyException exception = assertThrows(FriendyException.class, () -> {
-            jwtTokenFilter.setAuthentication(ACCESS_TOKEN_WITHOUT_EMAIL);
-        });
-
-        // Then
-        assertEquals("이메일 정보가 포함되지 않은 JWT 토큰입니다.", exception.getMessage());
+        // When & Then
+        assertThatThrownBy(() -> jwtTokenFilter.setAuthentication(CORRECT_ACCESS_TOKEN))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION);
     }
+
 
     @Test
     @DisplayName("유효하지 않은 JWT 토큰일 경우 예외를 던진다.")
@@ -126,7 +123,7 @@ class JwtTokenFilterTest {
         // Given
         String invalidToken = "invalid-token";
         when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(invalidToken);
-        doThrow(new FriendyException(ErrorCode.INVALID_TOKEN, "유효하지 않은 JWT 토큰 형식입니다."))
+        doThrow(new UnAuthorizedException(AuthExceptionCode.MALFORMED_ACCESS_TOKEN))
             .when(jwtTokenProvider).validateAccessToken(invalidToken);
 
         PrintWriter mockWriter = Mockito.mock(PrintWriter.class);

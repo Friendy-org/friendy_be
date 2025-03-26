@@ -1,15 +1,16 @@
 package friendy.community.domain.member.service;
 
 import friendy.community.domain.auth.service.AuthService;
+import friendy.community.domain.member.controller.code.MemberExceptionCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
-import friendy.community.global.exception.ErrorCode;
-import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.domain.upload.service.S3service;
+import friendy.community.global.exception.domain.BadRequestException;
+import friendy.community.global.exception.domain.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,8 +28,7 @@ import java.time.LocalDate;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.OTHER_USER_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -82,9 +82,8 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueEmail(savedMember.getEmail()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("이미 가입된 이메일입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
+            .isInstanceOf(BadRequestException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.DUPLICATE_EMAIL_EXCEPTION);
     }
 
     @Test
@@ -95,9 +94,8 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.assertUniqueName(savedMember.getNickname()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("닉네임이 이미 존재합니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
+            .isInstanceOf(BadRequestException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.DUPLICATE_NICKNAME_EXCEPTION);
     }
 
     @Test
@@ -125,8 +123,8 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.changePassword(request))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("해당 이메일의 회원이 존재하지 않습니다.");
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION);
     }
 
     @Test
@@ -180,9 +178,8 @@ class MemberServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberService.getMemberInfo(httpServletRequest, nonExistentMemberId))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 회원입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.USER_NOT_FOUND_EXCEPTION);
     }
 
     @Test
@@ -240,7 +237,8 @@ class MemberServiceTest {
         String email = "nonexistent@example.com";
 
         // when & then
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> memberService.findMemberByEmail(email));
-        assertThat(exception.getExceptionType().getCode()).isEqualTo(4101);  // 4101은 예시 코드, 실제 코드에 맞게 수정
+        assertThatThrownBy(() -> memberService.findMemberByEmail(email))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION);
     }
 }

@@ -1,5 +1,6 @@
 package friendy.community.domain.auth.jwt;
 
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +56,7 @@ class JwtTokenExtractorTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenExtractor.extractRefreshToken(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(리프레시 토큰 추출 실패) - 토큰 : " + token);
+            .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
@@ -95,7 +95,6 @@ class JwtTokenExtractorTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenExtractor.extractRefreshToken(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(리프레시 토큰 추출 실패) - 토큰 : null");
+            .isInstanceOf(UnAuthorizedException.class);
     }
 }

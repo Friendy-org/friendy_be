@@ -1,6 +1,8 @@
 package friendy.community.domain.auth.jwt;
 
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
+import friendy.community.global.exception.domain.UnAuthorizedException;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +11,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import static friendy.community.domain.auth.fixtures.TokenFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -65,25 +66,38 @@ class JwtTokenProviderTest {
     @Test
     @DisplayName("엑세스토큰 예외")
     void validateAccessToken_ShouldThrowCorrectException() {
-        // When & Then
-        FriendyException exception = assertThrows(FriendyException.class, () -> {
-            jwtTokenProvider.validateAccessToken(MALFORMED_JWT_TOKEN);
-        });
-        assertEquals(ErrorCode.INVALID_TOKEN, exception.getErrorCode());
-        assertEquals("유효하지 않은 JWT 토큰 형식입니다.", exception.getMessage());
+        // given
+        String unsupportedToken =
+            Jwts.builder()
+                .setSubject("test@example.com")
+                .setExpiration(new Date(System.currentTimeMillis() + 10000)) // 만료 시간 설정
+                .setHeaderParam("alg", "none")  // 서명하지 않음
+                .compact();
 
-        exception = assertThrows(FriendyException.class, () -> {
-            jwtTokenProvider.validateAccessToken(UNSUPPORTED_JWT_TOKEN);
-        });
-        assertEquals(ErrorCode.INVALID_TOKEN, exception.getErrorCode());
-        assertEquals("JWT 토큰 검증 중 오류가 발생했습니다.", exception.getMessage());
+        String invalidJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature"; // 서명이 잘못된 토큰
 
-        exception = assertThrows(FriendyException.class, () -> {
-            jwtTokenProvider.validateAccessToken(EXPIRED_TOKEN);
-        });
-        assertEquals(ErrorCode.EXPIRED_TOKEN, exception.getErrorCode());
-        assertEquals("만료된 토큰입니다.", exception.getMessage());
+        // when & then
+        assertThatThrownBy(() -> jwtTokenProvider.validateAccessToken(MALFORMED_JWT_TOKEN))
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasMessageContaining(AuthExceptionCode.MALFORMED_ACCESS_TOKEN.getMessage());
+
+        assertThatThrownBy(() -> jwtTokenProvider.validateAccessToken(EXPIRED_TOKEN))
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasMessageContaining(AuthExceptionCode.EXPIRED_ACCESS_TOKEN.getMessage());
+
+        assertThatThrownBy(() -> jwtTokenProvider.validateAccessToken(""))
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasMessageContaining(AuthExceptionCode.EMPTY_ACCESS_TOKEN.getMessage());
+
+        assertThatThrownBy(() -> jwtTokenProvider.validateAccessToken(INVALID_JWT_TOKEN))
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasMessageContaining(AuthExceptionCode.INVALID_ACCESS_TOKEN.getMessage());
+
+        assertThatThrownBy(() -> jwtTokenProvider.validateAccessToken(UNSUPPORTED_JWT_TOKEN))
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasMessageContaining(AuthExceptionCode.UNSUPPORTED_ACCESS_TOKEN.getMessage());
     }
+
 
     @Test
     @DisplayName("엑세스 토큰에 이메일 클레임이 누락된 경우 예외를 발생시킨다")
@@ -93,8 +107,7 @@ class JwtTokenProviderTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromAccessToken(tokenWithoutEmailClaim))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(JWT 액세스 토큰 Payload 이메일 누락) - 토큰 : " + tokenWithoutEmailClaim);
+            .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
@@ -113,10 +126,10 @@ class JwtTokenProviderTest {
         // then
         assertThat(refreshToken).isNotNull();
         verify(valueOperations, times(1)).set(
-                eq(email),
-                eq(refreshToken),
-                anyLong(),
-                eq(TimeUnit.MILLISECONDS)
+            eq(email),
+            eq(refreshToken),
+            anyLong(),
+            eq(TimeUnit.MILLISECONDS)
         );
     }
 
@@ -149,8 +162,7 @@ class JwtTokenProviderTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromRefreshToken(malFormedJwtToken))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(잘못된 리프레시 토큰) - 토큰 : " + malFormedJwtToken);
+            .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
@@ -161,8 +173,7 @@ class JwtTokenProviderTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromRefreshToken(expiredRefreshToken))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(만료된 리프레시 토큰) - 토큰 : " + expiredRefreshToken);
+            .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
@@ -173,8 +184,7 @@ class JwtTokenProviderTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromRefreshToken(tokenWithoutEmailClaim))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : " + tokenWithoutEmailClaim);
+            .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
@@ -192,8 +202,6 @@ class JwtTokenProviderTest {
 
         // when & then
         assertThatThrownBy(() -> jwtTokenProvider.extractEmailFromRefreshToken(refreshToken))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("로그인 되어있지 않은 사용자입니다.");
+            .isInstanceOf(UnAuthorizedException.class);
     }
-
 }
