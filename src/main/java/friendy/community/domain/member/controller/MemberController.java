@@ -9,6 +9,7 @@ import friendy.community.global.response.FriendyResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,17 +20,18 @@ public class MemberController implements SpringDocMemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public FriendyResponse<Void> signup(@Valid @RequestBody MemberSignUpRequest request) {
+    public ResponseEntity<FriendyResponse<Void>> signup(@Valid @RequestBody MemberSignUpRequest request) {
         memberService.signup(request);
-        return FriendyResponse.of(MemberSuccessCode.SIGN_UP_SUCCESS);
+        FriendyResponse<Void> response = FriendyResponse.of(MemberSuccessCode.SIGN_UP_SUCCESS);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/password")
-    public FriendyResponse<Void> changePassword(
+    public ResponseEntity<FriendyResponse<Void>> changePassword(
         @Valid @RequestBody PasswordRequest passwordRequest
     ) {
         memberService.changePassword(passwordRequest);
-        return FriendyResponse.of(MemberSuccessCode.CHANGE_PASSWORD_SUCCESS);
+        return ResponseEntity.ok(FriendyResponse.of(MemberSuccessCode.CHANGE_PASSWORD_SUCCESS));
     }
 
     @GetMapping("/member/{memberId}")
@@ -38,6 +40,7 @@ public class MemberController implements SpringDocMemberController {
         @PathVariable Long memberId
     ) {
         memberService.getMemberInfo(httpServletRequest, memberId);
-        FriendyResponse<FindMemberResponse> response = FriendyResponse.of(MemberSuccessCode.GET_MEMBER_INFO_SUCCESS, memberService.getMemberInfo(httpServletRequest, memberId));return ResponseEntity.ok(response);
+        FriendyResponse<FindMemberResponse> response = FriendyResponse.of(MemberSuccessCode.GET_MEMBER_INFO_SUCCESS, memberService.getMemberInfo(httpServletRequest, memberId));
+        return ResponseEntity.ok(response);
     }
 }

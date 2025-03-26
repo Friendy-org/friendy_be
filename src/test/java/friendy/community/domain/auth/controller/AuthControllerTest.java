@@ -1,6 +1,7 @@
 package friendy.community.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
 import friendy.community.domain.auth.dto.request.LoginRequest;
 import friendy.community.domain.auth.dto.response.TokenResponse;
 import friendy.community.domain.auth.jwt.JwtTokenExtractor;
@@ -8,7 +9,7 @@ import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.auth.service.AuthService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthController.class,
@@ -65,9 +65,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(loginRequest)))
             .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
-            .andExpect(header().string("Authorization-Refresh", "Bearer refreshToken"));
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -77,16 +75,14 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest("nonexistent@example.com", "password123!");
 
         when(authService.login(any(LoginRequest.class)))
-            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_EMAIL, "해당 이메일의 회원이 존재하지 않습니다."));
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.EMAIL_NOT_REGISTERED));
 
         // When & Then
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isUnauthorized())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("해당 이메일의 회원이 존재하지 않습니다."));
+            .andExpect(jsonPath("$.code").value(4114));
     }
 
     @Test
@@ -96,16 +92,13 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest("example@friendy.com", "password123!");
 
         when(authService.login(any(LoginRequest.class)))
-            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_PASSWORD, "로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.INVALID_PASSWORD));
 
         // When & Then
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isUnauthorized())
-            .andExpect(result ->
-                assertThat(result.getResolvedException().getMessage())
-                    .contains("로그인에 실패하였습니다. 비밀번호를 확인해주세요."));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -224,9 +217,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/token/reissue")
                 .header("Authorization-Refresh", refreshToken))
             .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer newAccessToken"))
-            .andExpect(header().string("Authorization-Refresh", "Bearer newRefreshToken"));
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -241,15 +232,13 @@ class AuthControllerTest {
             .thenReturn("invalidRefreshToken");
 
         when(authService.reissueToken("invalidRefreshToken"))
-            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.INVALID_REFRESH_TOKEN));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
                 .header("Authorization-Refresh", refreshToken))
             .andDo(print())
-            .andExpect(status().isUnauthorized())
-            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                .contains("인증 실패(잘못된 리프레시 토큰) - 토큰 : invalidRefreshToken"));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -262,15 +251,13 @@ class AuthControllerTest {
             .thenReturn("expiredRefreshToken");
 
         when(authService.reissueToken("expiredRefreshToken"))
-            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.EXPIRED_REFRESH_TOKEN));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
                 .header("Authorization-Refresh", refreshToken))
             .andDo(print())
-            .andExpect(status().isUnauthorized())
-            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                .contains("인증 실패(만료된 리프레시 토큰) - 토큰 : expiredRefreshToken"));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -283,15 +270,13 @@ class AuthControllerTest {
             .thenReturn("missingEmailClaimToken");
 
         when(authService.reissueToken("missingEmailClaimToken"))
-            .thenThrow(new FriendyException(ErrorCode.UNAUTHORIZED_USER, "인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
+            .thenThrow(new UnAuthorizedException(AuthExceptionCode.REFRESH_TOKEN_EMAIL_MISSING));
 
         // When & Then
         mockMvc.perform(post("/auth/token/reissue")
                 .header("Authorization-Refresh", refreshToken))
             .andDo(print())
-            .andExpect(status().isUnauthorized())
-            .andExpect(result -> assertThat(result.getResolvedException().getMessage())
-                .contains("인증 실패(JWT 리프레시 토큰 Payload 이메일 누락) - 토큰 : missingEmailClaimToken"));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test

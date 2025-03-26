@@ -8,7 +8,7 @@ import friendy.community.domain.follow.repository.FollowRepository;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.domain.member.service.MemberService;
-import friendy.community.global.exception.domain.BusinessException;
+import friendy.community.global.exception.domain.BadRequestException;
 import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class FollowService {
         Member following = getValidTargetMember(follower, targetId);
 
         if (followRepository.existsByFollowerAndFollowing(follower, following)) {
-            throw new BusinessException(FollowExceptionCode.ALREADY_FOLLOWED);
+            throw new BadRequestException(FollowExceptionCode.ALREADY_FOLLOWED);
         }
 
         Follow follow = Follow.of(follower, following);
@@ -44,7 +44,7 @@ public class FollowService {
         Member following = getValidTargetMember(follower, targetId);
 
         Follow follow = followRepository.findByFollowerAndFollowing(follower, following)
-            .orElseThrow(() -> new NotFoundException(FollowExceptionCode.NOT_FOLLOWED));
+            .orElseThrow(() -> new BadRequestException(FollowExceptionCode.NOT_FOLLOWED));
 
         followRepository.delete(follow);
     }
@@ -88,7 +88,7 @@ public class FollowService {
 
     private Member getValidTargetMember(Member requester, Long memberId) {
         if (requester.getId().equals(memberId)) {
-            throw new BusinessException(FollowExceptionCode.SELF_FOLLOW_NOT_ALLOWED);
+            throw new BadRequestException(FollowExceptionCode.SELF_FOLLOW_NOT_ALLOWED);
         }
 
         return memberRepository.findById(memberId)

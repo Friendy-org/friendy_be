@@ -5,11 +5,13 @@ import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,18 +28,19 @@ public class PostController implements SpringDocPostController {
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @Valid @RequestBody PostCreateRequest postCreateRequest
     ) {
-        Long postId = postService.savePost(postCreateRequest, userDetails.getMemberId());
-        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.CREATE_POST_SUCCESS));
+        postService.savePost(postCreateRequest, userDetails.getMemberId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(FriendyResponse.of(PostSuccessCode.CREATE_POST_SUCCESS));
     }
 
     @PostMapping("/{postId}")
-    public ResponseEntity<FriendyResponse<Void>> updatePost(
+    public ResponseEntity<FriendyResponse<PostIdResponse>> updatePost(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long postId,
         @Valid @RequestBody PostUpdateRequest postUpdateRequest
     ) {
-        Long returnPostId = postService.updatePost(postUpdateRequest, userDetails.getMemberId(), postId);
-        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.UPDATE_POST_SUCCESS));
+        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.UPDATE_POST_SUCCESS,
+            postService.updatePost(postUpdateRequest, userDetails.getMemberId(), postId)));
     }
 
     @DeleteMapping("/{postId}")

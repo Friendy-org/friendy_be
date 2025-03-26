@@ -4,9 +4,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import friendy.community.domain.upload.controller.code.UploadExceptionCode;
 import friendy.community.domain.upload.dto.response.UploadResponse;
-import friendy.community.domain.upload.exception.S3exception;
+import friendy.community.global.exception.domain.BadGatewayException;
 import friendy.community.global.exception.domain.BadRequestException;
-import friendy.community.global.exception.domain.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,7 +69,7 @@ public class S3service {
             S3Object object = s3Client.getObject(new GetObjectRequest(bucket, key));
             return object.getObjectMetadata().getContentType();
         } catch (Exception e) {
-            throw new BusinessException(UploadExceptionCode.FILE_TYPE_UNAVAILABLE);
+            throw new BadGatewayException(UploadExceptionCode.FILE_TYPE_UNAVAILABLE);
         }
     }
 
@@ -78,7 +77,7 @@ public class S3service {
         try {
             s3Client.deleteObject(new DeleteObjectRequest(bucket, s3Key));
         } catch (AmazonS3Exception e) {
-            throw new BusinessException(UploadExceptionCode.FILE_DELETION_FAILED);
+            throw new BadGatewayException(UploadExceptionCode.FILE_DELETION_FAILED);
         }
     }
 
@@ -100,7 +99,7 @@ public class S3service {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             s3Client.putObject(bucket, uuidFileName, inputStream, metadata);
         } catch (IOException e) {
-            throw new BusinessException(UploadExceptionCode.S3_UPLOAD_ERROR);
+            throw new BadGatewayException(UploadExceptionCode.S3_UPLOAD_ERROR);
         }
         return s3Client.getUrl(bucket, uuidFileName).toString();
     }
@@ -111,7 +110,7 @@ public class S3service {
         try {
             s3Client.copyObject(copyObjectRequest);
         } catch (Exception e) {
-            throw new BusinessException(UploadExceptionCode.S3_OBJECT_COPY_FAILED);
+            throw new BadGatewayException(UploadExceptionCode.S3_OBJECT_COPY_FAILED);
         }
     }
 }
