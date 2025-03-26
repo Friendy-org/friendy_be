@@ -1,11 +1,17 @@
 package friendy.community.domain.member.encryption;
 
+import friendy.community.global.exception.domain.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mockStatic;
 
 class SHA2PasswordEncryptorTest {
 
@@ -73,4 +79,18 @@ class SHA2PasswordEncryptorTest {
         assertThat(encryptedPassword1).isNotEqualTo(encryptedPassword2);
     }
 
+    @Test
+    @DisplayName("SHA-256 알고리즘이 없을 경우 BadRequestException을 던져야 한다")
+    void testSHA2PasswordEncryptorThrowsBadRequestExceptionWhenNoSuchAlgorithm() {
+        // Given
+        MockedStatic<MessageDigest> mockedMessageDigest = mockStatic(MessageDigest.class);
+        mockedMessageDigest.when(() -> MessageDigest.getInstance("SHA-256"))
+            .thenThrow(new NoSuchAlgorithmException());
+
+        // When & Then
+        assertThrows(BadRequestException.class, () -> {
+            new SHA2PasswordEncryptor();
+        });
+        mockedMessageDigest.close();
+    }
 }
