@@ -1,8 +1,9 @@
 package friendy.community.domain.email.service;
 
+import friendy.community.domain.email.controller.code.EmailExceptionCode;
 import friendy.community.domain.email.dto.request.EmailRequest;
 import friendy.community.domain.email.dto.request.VerifyCodeRequest;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.BadRequestException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +19,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 
@@ -62,10 +63,10 @@ class EmailServiceTest {
         // Then
         verify(mailSender, times(1)).send(any(MimeMessage.class));
         verify(valueOperations, times(1)).set(
-                eq(request.email()),
-                anyString(),
-                eq(300000L),
-                eq(TimeUnit.MILLISECONDS)
+            eq(request.email()),
+            anyString(),
+            eq(300000L),
+            eq(TimeUnit.MILLISECONDS)
         );
     }
 
@@ -100,9 +101,8 @@ class EmailServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> emailService.verifyAuthCode(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증번호가 존재하지 않습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REQUEST);
+            .isInstanceOf(BadRequestException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", EmailExceptionCode.AUTH_CODE_NOT_FOUND);
     }
 
     @Test
@@ -119,9 +119,7 @@ class EmailServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> emailService.verifyAuthCode(request))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("인증번호가 일치하지 않습니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REQUEST);
+            .isInstanceOf(BadRequestException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", EmailExceptionCode.AUTH_CODE_MISMATCH);
     }
-
 }

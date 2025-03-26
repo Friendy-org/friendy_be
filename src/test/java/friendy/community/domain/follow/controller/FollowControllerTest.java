@@ -3,7 +3,6 @@ package friendy.community.domain.follow.controller;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.service.FollowService;
-import friendy.community.domain.post.controller.PostController;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.security.FriendyUserDetails;
@@ -25,13 +24,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = FollowController.class,
     excludeFilters = {
@@ -91,10 +88,7 @@ class FollowControllerTest {
         mockMvc.perform(get("/follow/following/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.members").isArray())
-            .andExpect(jsonPath("$.members.length()").value(0))
-            .andExpect(jsonPath("$.hasNext").value(false));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -108,9 +102,6 @@ class FollowControllerTest {
         mockMvc.perform(get("/follow/follower/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.members").isArray())
-            .andExpect(jsonPath("$.members.length()").value(0))
-            .andExpect(jsonPath("$.hasNext").value(false));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 }

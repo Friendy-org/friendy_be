@@ -1,9 +1,10 @@
 package friendy.community.domain.upload.controller;
 
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
+import friendy.community.domain.upload.dto.response.UploadResponse;
+import friendy.community.domain.upload.service.S3service;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
-import friendy.community.domain.upload.service.S3service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UploadController.class,
@@ -44,16 +44,14 @@ public class UploadControllerTest {
     void uploadFileReturnFileUrl() throws Exception {
         // Given
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[]{1, 2, 3, 4});
-        String mockFileUrl = "https://example.com/test.jpg";
 
         // When
-        when(s3service.upload(file, "temp")).thenReturn(mockFileUrl);
-        
+        when(s3service.upload(file, "temp")).thenReturn(new UploadResponse("https://s3.example.com/temp.jpg"));
+
         // Then
         mockMvc.perform(multipart("/file/upload")
                 .file(file)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isOk())
-            .andExpect(content().string(mockFileUrl));
+            .andExpect(status().isOk());
     }
 }

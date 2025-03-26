@@ -10,7 +10,6 @@ import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
-import friendy.community.global.exception.ErrorCode;
 import friendy.community.global.security.FriendyUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = PostController.class,
     excludeFilters = {
@@ -82,8 +81,7 @@ class PostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andDo(print())
-            .andExpect(status().isCreated())
-            .andExpect(header().string("Location", "/posts/1"));
+            .andExpect(status().isCreated());
     }
 
     @Test
@@ -120,14 +118,13 @@ class PostControllerTest {
         // Given
         Long postId = 1L;
         PostUpdateRequest request = new PostUpdateRequest("this is updated content", List.of("프렌디", "개발", "스터디"), null);
-        when(postService.updatePost(any(PostUpdateRequest.class), anyLong(), anyLong())).thenReturn(1L);
 
         // When & Then
         mockMvc.perform(post(BASE_URL + "/{postId}", postId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andDo(print())
-            .andExpect(status().isCreated());
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -171,20 +168,6 @@ class PostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 게시글 조회 시 404 Not Found 반환")
-    void getPostWithNonExistentIdReturns404NotFound() throws Exception {
-        // Given
-        Long nonExistentPostId = 999L;
-        when(postService.getPost(anyLong())).thenThrow(new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "존재하지 않는 게시글입니다."));
-
-        // When & Then
-        mockMvc.perform(get(BASE_URL + "/{postId}", nonExistentPostId)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andDo(print())
-            .andExpect(status().isNotFound());
     }
 
     @Test

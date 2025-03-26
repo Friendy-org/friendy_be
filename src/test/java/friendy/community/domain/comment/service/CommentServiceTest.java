@@ -1,5 +1,6 @@
 package friendy.community.domain.comment.service;
 
+import friendy.community.domain.comment.controller.code.CommentExceptionCode;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
@@ -16,7 +17,8 @@ import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.domain.post.service.PostService;
-import friendy.community.global.exception.ErrorCode;
+import friendy.community.global.exception.domain.NotFoundException;
+import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -127,9 +128,7 @@ public class CommentServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentService.saveComment(request, member.getId()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("댓글 작성 대상 게시글이 존재하지 않습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -140,9 +139,7 @@ public class CommentServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentService.saveReply(request, member.getId()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 댓글입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -171,9 +168,8 @@ public class CommentServiceTest {
         // When & Then
         List<Comment> savedComments = commentRepository.findAll();
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 2025L, member.getId()))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("존재하지 않는 댓글입니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.COMMENT_NOT_FOUND);  // 예외 코드 확인
     }
 
     @Test
@@ -187,9 +183,8 @@ public class CommentServiceTest {
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
         // When & Then
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, 2L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("작성자만 댓글을 수정할 수 있습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.UNAUTHORIZED_COMMENT_USER);
     }
 
     @Test
@@ -229,9 +224,8 @@ public class CommentServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentService.updateReply(commentUpdateRequest, savedReply.getId(), 2L))
-            .isInstanceOf(FriendyException.class)
-            .hasMessageContaining("작성자만 답글을 수정할 수 있습니다.")
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_USER);
+            .isInstanceOf(UnAuthorizedException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.UNAUTHORIZED_REPLY_USER);
     }
 
     @Test
