@@ -1,5 +1,9 @@
 package friendy.community.domain.auth.fixtures;
 
+import io.jsonwebtoken.Jwts;
+
+import java.util.Date;
+
 public class TokenFixtures {
 
     /**
@@ -22,13 +26,22 @@ public class TokenFixtures {
 
     public static final String EXPIRED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZnJpZW5keS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDEwMH0.mqOL2LPVIqTlrjqAWElM5XsJMgTjxWsEpOkr0atIdKs";
 
+    public static final String UNSUPPORTED_JWT_TOKEN =
+        Jwts.builder()
+        .setSubject("test@example.com")
+        .setExpiration(new Date(System.currentTimeMillis() + 10000)) // 만료 시간 설정
+        .setHeaderParam("alg", "none")  // 서명하지 않음
+        .compact();
+
+    public static final String INVALID_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature"; // 서명이 잘못된 토큰
+
     public static final String ACCESS_TOKEN_WITHOUT_EMAIL = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlU3ViamVjdCIsInNvbWVJbnB1dCI6InNvbWVWaWx1ZSJ9.yE4xFsm_BxgU8-TPSbCqD8wPTI9nkvSjb7dfA0RgkHg";
 
-    public static final String UNSUPPORTED_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.invalidsignature";
     /**
-     * MISSING_CLAIM_TOKEN : 만료 기한 - 2123년 10월 30일
+     ** MISSING_CLAIM_TOKEN : 만료 기한 - 2123년 10월 30일
      */
     public static final String MISSING_CLAIM_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDAwMDAwMDAsImV4cCI6NDg1NDI3ODQwMH0.65lNI_07FgETBnasvHCzxc1RDfLSoDBJr0Vebocu2gI";
+
 
 }
 
