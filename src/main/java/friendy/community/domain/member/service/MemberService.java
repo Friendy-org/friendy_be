@@ -12,6 +12,7 @@ import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
+import friendy.community.global.exception.domain.BadRequestException;
 import friendy.community.global.exception.domain.ConflictException;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.domain.upload.service.S3service;
@@ -73,13 +74,13 @@ public class MemberService {
 
     public void assertUniqueEmail(String email) {
         if (memberRepository.existsByEmail(email)) {
-            throw new ConflictException(MemberExceptionCode.DUPLICATE_EMAIL_EXCEPTION);
+            throw new BadRequestException(MemberExceptionCode.DUPLICATE_EMAIL_EXCEPTION);
         }
     }
 
     public void assertUniqueName(String name) {
         if (memberRepository.existsByNickname(name)) {
-            throw new ConflictException(MemberExceptionCode.DUPLICATE_NICKNAME_EXCEPTION);
+            throw new BadRequestException(MemberExceptionCode.DUPLICATE_NICKNAME_EXCEPTION);
         }
     }
 

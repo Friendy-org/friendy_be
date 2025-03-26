@@ -3,7 +3,8 @@ package friendy.community.domain.email.service;
 import friendy.community.domain.email.controller.code.EmailExceptionCode;
 import friendy.community.domain.email.dto.request.EmailRequest;
 import friendy.community.domain.email.dto.request.VerifyCodeRequest;
-import friendy.community.global.exception.domain.BusinessException;
+import friendy.community.global.exception.domain.BadGatewayException;
+import friendy.community.global.exception.domain.BadRequestException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class EmailService {
             final MimeMessage message = createEmailMessage(request.email(), authCode);
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new BusinessException(EmailExceptionCode.EMAIL_SEND_FAILURE);
+            throw new BadGatewayException(EmailExceptionCode.EMAIL_SEND_FAILURE);
         }
     }
 
@@ -40,11 +41,11 @@ public class EmailService {
         final String savedCode = redisTemplate.opsForValue().get(request.email());
 
         if (savedCode == null) {
-            throw new BusinessException(EmailExceptionCode.AUTH_CODE_NOT_FOUND);
+            throw new BadRequestException(EmailExceptionCode.AUTH_CODE_NOT_FOUND);
         }
 
         if (!savedCode.equals(request.authCode())) {
-            throw new BusinessException(EmailExceptionCode.AUTH_CODE_MISMATCH);
+            throw new BadRequestException(EmailExceptionCode.AUTH_CODE_MISMATCH);
         }
     }
 

@@ -8,6 +8,7 @@ import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
 import friendy.community.domain.member.service.MemberService;
+import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,16 +57,20 @@ public class AuthService {
     }
 
     private Member getVerifiedMember(String email, String password) {
-        Member member = memberService.findMemberByEmail(email);
-        validateCorrectPassword(member, password);
-        return member;
+        try {
+            Member member = memberService.findMemberByEmail(email);
+            validateCorrectPassword(member, password);
+            return member;
+        } catch (NotFoundException e) {
+            throw new UnAuthorizedException(AuthExceptionCode.EMAIL_NOT_REGISTERED);
+        }
     }
 
     private void validateCorrectPassword(Member member, String password) {
         String salt = member.getSalt();
         String encryptedPassword = passwordEncryptor.encrypt(password, salt);
         if (!member.matchPassword(encryptedPassword)) {
-            throw new UnAuthorizedException(AuthExceptionCode.LOGIN_FAILED_EXCEPTION);
+            throw new UnAuthorizedException(AuthExceptionCode.INVALID_PASSWORD);
         }
     }
 }

@@ -4,6 +4,7 @@ import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
@@ -55,7 +56,7 @@ public interface SpringDocPostController {
     @ApiErrorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, instance = "/posts/{postId}", errorCases = {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
-    ResponseEntity<FriendyResponse<Void>> updatePost(
+    ResponseEntity<FriendyResponse<PostIdResponse>> updatePost(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest
