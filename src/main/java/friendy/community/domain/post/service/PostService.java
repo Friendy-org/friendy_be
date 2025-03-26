@@ -11,6 +11,7 @@ import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
+import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
@@ -45,7 +46,7 @@ public class PostService {
         return post.getId();
     }
 
-    public long updatePost(final PostUpdateRequest request, final Long memberId, final Long postId) {
+    public PostIdResponse updatePost(final PostUpdateRequest request, final Long memberId, final Long postId) {
         final Member member = memberService.findMemberById(memberId);
 
         final Post post = validatePostExistence(postId);
@@ -58,7 +59,9 @@ public class PostService {
         hashtagService.updateHashtags(post, request.hashtags());
         postRepository.save(post);
 
-        return post.getId();
+        PostIdResponse response = PostIdResponse.from(post);
+
+        return response;
     }
 
     public void deletePost(final Long memberId, final Long postId) {
@@ -81,6 +84,11 @@ public class PostService {
 
     public FindAllPostResponse getPostsByLastId(Long lastPostId) {
         return postQueryDSLRepository.getPostsByLastId(lastPostId, 10);
+    }
+
+    public Post getPostById(Long postId) {
+        return postRepository.findById(postId)
+            .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
     }
 
     private Post validatePostExistence(Long postId) {
