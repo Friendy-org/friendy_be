@@ -160,7 +160,7 @@ class PostControllerTest {
     void getPostSuccessfullyReturns200Ok() throws Exception {
         // Given
         Long postId = 1L;
-        FindPostResponse response = new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"), null);
+        FindPostResponse response = new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1",null), null);
         when(postService.getPost(anyLong())).thenReturn(response);
 
         // When & Then
@@ -175,8 +175,8 @@ class PostControllerTest {
     void getPostsListSuccessfullyReturns200Ok() throws Exception {
         // Given
         List<FindPostResponse> posts = List.of(
-            new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1"), null),
-            new FindPostResponse(2L, "Post 2", "2025-01-23T11:00:00", 20, 10, 3, new FindMemberResponse(2L, "author2"), null)
+            new FindPostResponse(1L, "Post 1", "2025-01-23T10:00:00", 10, 5, 2, new FindMemberResponse(1L, "author1",null), null),
+            new FindPostResponse(2L, "Post 2", "2025-01-23T11:00:00", 20, 10, 3, new FindMemberResponse(2L, "author2",null), null)
         );
         when(postService.getPostsByLastId(anyLong()))
             .thenReturn(new FindAllPostResponse(posts, false, 1L));
