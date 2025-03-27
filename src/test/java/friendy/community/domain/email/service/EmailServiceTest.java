@@ -3,9 +3,12 @@ package friendy.community.domain.email.service;
 import friendy.community.domain.email.controller.code.EmailExceptionCode;
 import friendy.community.domain.email.dto.request.EmailRequest;
 import friendy.community.domain.email.dto.request.VerifyCodeRequest;
+import friendy.community.global.exception.domain.BadGatewayException;
 import friendy.community.global.exception.domain.BadRequestException;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,9 @@ class EmailServiceTest {
 
     @MockitoBean
     private MimeMessage mimeMessage;
+
+    @MockitoBean
+    private ValueOperations<String, String> valueOperations;
 
     @Test
     @DisplayName("이메일 전송이 성공하면 Redis에 인증 코드가 저장된다")
@@ -121,5 +127,19 @@ class EmailServiceTest {
         assertThatThrownBy(() -> emailService.verifyAuthCode(request))
             .isInstanceOf(BadRequestException.class)
             .hasFieldOrPropertyWithValue("exceptionType", EmailExceptionCode.AUTH_CODE_MISMATCH);
+    }
+
+    @Test
+    void sendAuthenticatedEmail_throwsBadGatewayException_whenMessagingExceptionOccurs() throws MessagingException {
+        // given
+        EmailRequest request = new EmailRequest("test@example.com");
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        doAnswer(invocation -> { throw new MessagingException("메일 생성 실패"); })
+            .when(mailSender).createMimeMessage();
+
+        // when & then
+        assertThatThrownBy(() -> emailService.sendAuthenticatedEmail(request))
+            .isInstanceOf(BadGatewayException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", EmailExceptionCode.EMAIL_SEND_FAILURE);
     }
 }
