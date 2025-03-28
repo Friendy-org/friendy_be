@@ -21,6 +21,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static friendy.community.global.config.SecurityPathConfig.isPublicApiUriWithMethod;
+
 @RequiredArgsConstructor
 @Slf4j
 @Component
@@ -41,7 +43,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String token = jwtTokenExtractor.extractAccessToken(request);
 
             if (token == null) {
-                throw new UnAuthorizedException(AuthExceptionCode.MISSING_ACCESS_TOKEN);
+                if (isPublicApiUriWithMethod(request.getRequestURI(), request.getMethod())) {
+                    filterChain.doFilter(request, response);
+                } else {
+                    throw new UnAuthorizedException(AuthExceptionCode.MISSING_ACCESS_TOKEN);
+                }
             }
 
             jwtTokenProvider.validateAccessToken(token);
@@ -89,9 +95,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(final HttpServletRequest request) {
         String path = request.getRequestURI();
-        String method = request.getMethod();
 
-        if (SecurityPathConfig.isPublicApiUriWithMethod(path, method) || SecurityPathConfig.isPublicUri(path)) {
+        if (SecurityPathConfig.isNoAuthUri(path)) {
             return true;
         }
         return false;
