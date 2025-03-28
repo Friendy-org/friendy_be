@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SecurityPathConfig {
 
-    public static final List<String> PUBLIC_START_URIS = List.of(
+    public static final List<String> NO_AUTH_API_URIS = List.of(
         "/swagger-ui",
         "/v3/api-docs",
         "/auth",
@@ -22,6 +22,15 @@ public class SecurityPathConfig {
         "/follow/follower"
     );
 
+//    public static final List<String> PUBLIC_API_URIS = List.of(
+//        "/login",
+//        "/register",
+//        "/posts/**",
+//        "/comments/**",
+//        "/public/images/**"
+//        // 필요에 따라 다른 경로들 추가
+//    );
+
     public static final List<String> PUBLIC_GET_API_URIS = List.of(
         "/posts/"
     );
@@ -33,8 +42,8 @@ public class SecurityPathConfig {
         return false;
     }
 
-    public static boolean isPublicUri(final String path) {
+    public static boolean isNoAuthUri(final String path) {
         return PUBLIC_URIS.contains(path) ||
-            PUBLIC_START_URIS.stream().anyMatch(path::startsWith);
+            NO_AUTH_API_URIS.stream().anyMatch(path::startsWith);
     }
 }
