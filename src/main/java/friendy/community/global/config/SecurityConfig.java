@@ -1,6 +1,7 @@
 package friendy.community.global.config;
 
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -8,11 +9,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,22 +27,9 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)  // 여기서 prePostEnabled = true를 설정
 public class SecurityConfig {
 
-    private static final List<String> PERMIT_URLS = List.of(
-        "/swagger-ui/**",
-        "/v3/api-docs/**",
-        "/auth/**",
-        "/signup/**",
-        "/h2-console/**",
-        "/email/**",
-        "/file/**",
-        "/follow/following/**",
-        "/follow/follower/**"
-    );
-    private static final List<String> PERMIT_GET_URLS = List.of(
-        "/posts/**"
-    );
     @Autowired
     private final JwtTokenFilter jwtTokenFilter;
 
@@ -51,14 +41,13 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, PERMIT_GET_URLS.toArray(new String[0])).permitAll()
-                .requestMatchers(PERMIT_URLS.toArray(new String[0])).permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .csrf(AbstractHttpConfigurer::disable)
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
