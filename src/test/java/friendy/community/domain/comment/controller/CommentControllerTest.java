@@ -12,9 +12,7 @@ import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
 import friendy.community.domain.comment.dto.response.FindCommentResponse;
-import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.post.dto.response.FindMemberResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +36,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = CommentController.class,
