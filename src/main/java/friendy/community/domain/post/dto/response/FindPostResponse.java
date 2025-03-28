@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public record FindPostResponse(
         Long id,
         String content,
+        String location,
         String createdAt,
         int likeCount,
         int commentCount,
@@ -32,6 +33,7 @@ public record FindPostResponse(
         return new FindPostResponse(
             post.getId(),
             post.getContent(),
+            post.getLocation(),
             formatDateTime(post.getCreatedDate()),
             post.getLikeCount(),
             post.getCommentCount(),

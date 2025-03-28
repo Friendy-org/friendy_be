@@ -11,7 +11,7 @@ public record FindMemberResponse(
         String profileImage;
 
         if (member.getMemberImage() == null) {
-            profileImage = "defaultProfileImage";
+            profileImage = "https://friendybucket.s3.us-east-2.amazonaws.com/defaultimages/image.png";
         } else {
             profileImage = member.getMemberImage().getImageUrl();
         }

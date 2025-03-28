@@ -17,6 +17,9 @@ public record PostCreateRequest(
         List<String> hashtags,
 
         @Schema(description = "게시글 이미지 목록", example = "[\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]")
-        List<String> imageUrls
+        List<String> imageUrls,
+
+        @Schema(description = "위치", example = "부산 광역시")
+        String location
 ) {
 }

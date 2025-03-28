@@ -32,6 +32,9 @@ public class Post extends BaseEntity {
     private String content;
 
     @Column(nullable = false)
+    private String location;
+
+    @Column(nullable = false)
     @ColumnDefault("0")
     private Integer likeCount;
 
@@ -49,6 +52,7 @@ public class Post extends BaseEntity {
     protected Post(final PostCreateRequest request, final Member member) {
         this.member = member;
         this.content = request.content();
+        this.location = request.location();
         this.likeCount = 0;
         this.commentCount = 0;
         this.shareCount = 0;
@@ -65,6 +69,7 @@ public class Post extends BaseEntity {
 
     public void updatePost(final PostUpdateRequest postUpdateRequest) {
         this.content = postUpdateRequest.content();
+        this.location = postUpdateRequest.location();
     }
 
     public void updateCommentCount(final Integer commentCount) {
