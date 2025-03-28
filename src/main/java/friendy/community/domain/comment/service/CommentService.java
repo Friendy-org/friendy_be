@@ -133,7 +133,7 @@ public class CommentService {
 
     private void validatePageNumber(int requestedPage, Page<?> page) {
         if (requestedPage >= page.getTotalPages())
-            throw new FriendyException(ErrorCode.RESOURCE_NOT_FOUND, "요청한 페이지가 존재하지 않습니다.");
+            throw new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND);
     }
 
     private Comment getCommentByCommentId(final Long commentId) {
