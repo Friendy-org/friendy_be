@@ -1,6 +1,8 @@
 package friendy.community.domain.auth.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import friendy.community.domain.auth.controller.code.AuthExceptionCode;
+import friendy.community.global.config.SecurityPathConfig;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import friendy.community.global.exception.dto.ExceptionResponse;
 import friendy.community.global.security.FriendyUserDetails;
@@ -35,11 +37,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final FilterChain filterChain
     ) throws ServletException, IOException {
         try {
+
             String token = jwtTokenExtractor.extractAccessToken(request);
 
             if (token == null) {
-                filterChain.doFilter(request, response);
-                return;
+                throw new UnAuthorizedException(AuthExceptionCode.MISSING_ACCESS_TOKEN);
             }
 
             jwtTokenProvider.validateAccessToken(token);
@@ -82,5 +84,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             friendyUserDetails.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(final HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        if (SecurityPathConfig.isPublicApiUriWithMethod(path, method) || SecurityPathConfig.isPublicUri(path)) {
+            return true;
+        }
+        return false;
     }
 }
