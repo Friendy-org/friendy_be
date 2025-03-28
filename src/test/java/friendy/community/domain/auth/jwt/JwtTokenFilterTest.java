@@ -17,8 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -28,7 +30,7 @@ import java.io.PrintWriter;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN;
 import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_ACCESS_TOKEN_WITHOUT_BEARER;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -52,6 +54,8 @@ class JwtTokenFilterTest {
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
+
         request = Mockito.mock(HttpServletRequest.class);
         response = Mockito.mock(HttpServletResponse.class);
         filterChain = Mockito.mock(FilterChain.class);
@@ -62,18 +66,6 @@ class JwtTokenFilterTest {
             member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
     }
 
-    @Test
-    @DisplayName("토큰이 없으면 필터 체인을 계속 진행한다.")
-    void shouldProceedWithFilterChainWhenNoToken() throws ServletException, IOException {
-        // given
-        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(null);
-
-        // when
-        jwtTokenFilter.doFilterInternal(request, response, filterChain);
-
-        // then
-        verify(filterChain).doFilter(request, response);
-    }
 
     @Test
     @DisplayName("유효한 토큰이 있을 경우 필터 체인을 진행한다.")
@@ -116,7 +108,6 @@ class JwtTokenFilterTest {
             .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION);
     }
 
-
     @Test
     @DisplayName("유효하지 않은 JWT 토큰일 경우 예외를 던진다.")
     void shouldThrowExceptionWhenTokenIsInvalid() throws ServletException, IOException {
@@ -138,4 +129,66 @@ class JwtTokenFilterTest {
         verify(response).setContentType("application/json");
         verify(response).setCharacterEncoding("UTF-8");
     }
+
+    @Test
+    @DisplayName("JWT 토큰이 존재하지 않을 경우 UnAuthorizedException을 던진다")
+    void shouldThrowUnAuthorizedExceptionWhenTokenIsNull() throws ServletException, IOException {
+        // given
+        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(null);
+        PrintWriter mockWriter = Mockito.mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(mockWriter);
+        doNothing().when(mockWriter).write(anyString());
+
+        // when
+        jwtTokenFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
+        verify(response).setCharacterEncoding("UTF-8");
+
+    }
+
+    @Test
+    @DisplayName("public URI에 대해서는 필터가 적용되지 않아야 한다.")
+    void shouldNotFilterForPublicUri() throws Exception {
+        // Given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/swagger-ui");
+
+        // When
+        boolean shouldNotFilter = jwtTokenFilter.shouldNotFilter(request);
+
+        // Then
+        assertTrue(shouldNotFilter);
+    }
+
+    @Test
+    @DisplayName("GET 메소드에 대해 public API URI는 필터링되지 않아야 한다")
+    void shouldNotFilterForPublicApiUriWithMethod() throws Exception {
+        // Given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/posts/");
+        request.setMethod("GET");
+
+        // When
+        boolean shouldNotFilter = jwtTokenFilter.shouldNotFilter(request);
+
+        // Then
+        assertTrue(shouldNotFilter);
+    }
+
+    @Test
+    void shouldFilterForUri() throws Exception {
+        // Given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/test");
+
+        // When
+        boolean shouldNotFilter = jwtTokenFilter.shouldNotFilter(request);
+
+        // Then
+        assertFalse(shouldNotFilter);
+    }
+
 }
