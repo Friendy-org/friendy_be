@@ -216,9 +216,8 @@ public class CommentServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentService.updateReply(updateRequest, 2025L, member.getId()))
-                .isInstanceOf(FriendyException.class)
-                .hasMessageContaining("존재하지 않는 답글입니다.")
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RESOURCE_NOT_FOUND);
+                .isInstanceOf(NotFoundException.class)
+                .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.COMMENT_NOT_FOUND);
     }
 
     @Test

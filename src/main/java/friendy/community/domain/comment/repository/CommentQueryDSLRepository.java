@@ -1,9 +1,14 @@
 package friendy.community.domain.comment.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import friendy.community.domain.comment.controller.code.CommentExceptionCode;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.response.FindCommentResponse;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.QComment;
+import friendy.community.domain.member.model.QMember;
 import friendy.community.domain.post.model.QPost;
+import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,23 +25,32 @@ public class CommentQueryDSLRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public Page<Comment> findAllComments(Pageable pageable, Long postId) {
+    public FindAllCommentsResponse getCommentsByLastId(Long lastCommentId, int size) {
         List<Comment> comments = queryFactory.selectFrom(QComment.comment)
-                .leftJoin(QComment.comment.post, QPost.post).fetchJoin()
-                .where(QComment.comment.post.id.eq(postId))
-                .orderBy(QComment.comment.likeCount.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .leftJoin(QComment.comment.member, QMember.member).fetchJoin()
+                .where(
+                        lastCommentId != null ? QComment.comment.id.lt(lastCommentId) : null
+                )
+                .orderBy(QComment.comment.id.desc())
+                .limit(size + 1)
                 .fetch();
 
-        Long total = Optional.ofNullable(
-        queryFactory.select(QComment.comment.count())
-                .from(QComment.comment)
-                .where(QComment.comment.post.id.eq(postId))
-                .fetchOne()
-        ).orElse(0L);
+        if (comments.isEmpty()) {
+            throw new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND);
+        }
 
-        return new PageImpl<>(comments, pageable, total);
+        boolean hasNext = comments.size() > size;
+        if (hasNext) {
+            comments.removeLast();
+        }
+        Long newLastCommentId = comments.getLast().getId();
+
+        List<FindCommentResponse> commentResponses = comments.stream()
+                .map(FindCommentResponse::from)
+                .collect(Collectors.toList());
+
+        return new FindAllCommentsResponse(commentResponses, hasNext, newLastCommentId);
+
     }
 
 }
