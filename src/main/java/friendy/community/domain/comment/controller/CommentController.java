@@ -82,6 +82,6 @@ public class CommentController implements SpringDocCommentController {
             @RequestParam Long postId,
             @RequestParam(required = false) Long lastCommentId
     ) {
-        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.GET_ALL_COMMENTS_SUCCESS, commentService.getCommentByLastId(lastCommentId)));
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.GET_ALL_COMMENTS_SUCCESS, commentService.getCommentsByLastId(lastCommentId)));
     }
 }
