@@ -4,6 +4,7 @@ import java.util.List;
 
 public record FindAllCommentsResponse(
         List<FindCommentResponse> comments,
-        Integer totalPages
+        boolean hasNext,
+        Long lastCommentId
 ) {
 }
