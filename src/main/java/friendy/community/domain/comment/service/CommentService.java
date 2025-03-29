@@ -1,11 +1,13 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
+import friendy.community.domain.comment.repository.CommentQueryDSLRepository;
 import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.model.Member;
@@ -16,6 +18,7 @@ import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +31,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
     private final MemberService memberService;
+    private final CommentQueryDSLRepository commentQueryDSLRepository;
     private final PostRepository postRepository;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
@@ -91,6 +95,10 @@ public class CommentService {
         comment.updateReplyCount(comment.getReplyCount() - 1);
 
         replyRepository.delete(reply);
+    }
+
+    public FindAllCommentsResponse getCommentsByLastId(final Long lastCommentId) {
+        return commentQueryDSLRepository.getCommentsByLastId(lastCommentId, 10);
     }
 
     private void validateAuthor(final Comment comment, final Member member) {

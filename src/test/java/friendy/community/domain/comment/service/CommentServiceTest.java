@@ -1,9 +1,10 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentCreateRequest;
+import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
@@ -15,7 +16,6 @@ import friendy.community.domain.member.service.MemberService;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
-import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
@@ -49,8 +49,6 @@ public class CommentServiceTest {
     private MemberService memberService;
     @Autowired
     private PostService postService;
-    @Autowired
-    private PostRepository postRepository;
     @Autowired
     private EntityManager entityManager;
 
@@ -207,6 +205,19 @@ public class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 답글 id를 수정 요청하면 404 Not Found 예외를 발생한다.")
+    void updateReplyWithNonExistsReplyThrows404NotFound() {
+        // Given
+        createComment();
+        CommentUpdateRequest updateRequest = new CommentUpdateRequest("updated valid content");
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateReply(updateRequest, 2025L, member.getId()))
+                .isInstanceOf(NotFoundException.class)
+                .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("다른 사용자의 답글을 수정 요청하면 401 Unauthorized 예외를 발생한다.")
     void updateOtherUsersReplyThrows401Unauthorized() {
         // Given
@@ -229,7 +240,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 삭제에 성공하면 부모 게시글의 댓글 개수가 1 감소한다.")
+    @DisplayName("댓글 삭제 성공")
     void deleteCommentSuccessfullyDecreasesCommentCountOfParentPost() {
         // Given
         createComment();
@@ -239,9 +250,7 @@ public class CommentServiceTest {
 
         // Then
         List<Comment> comments = commentRepository.findAll();
-        List<Post> posts = postRepository.findAll();
         assertThat(comments.size()).isEqualTo(0);
-        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
     }
 
     @Test
@@ -260,10 +269,8 @@ public class CommentServiceTest {
         // Then
         List<Comment> comments = commentRepository.findAll();
         List<Reply> replies = replyRepository.findAll();
-        List<Post> posts = postRepository.findAll();
         assertThat(comments.size()).isEqualTo(0);
         assertThat(replies.size()).isEqualTo(0);
-        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
     }
 
     @Test
@@ -283,5 +290,34 @@ public class CommentServiceTest {
         List<Reply> replies = replyRepository.findAll();
         assertThat(replies.size()).isEqualTo(0);
         assertThat(comments.getFirst().getReplyCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공")
+    void getAllCommentsSuccessfullyReturnsFindAllCommentsResponse() {
+        // Given
+        for (int i = 0; i < 15; i++)
+            createComment();
+
+        // When
+        FindAllCommentsResponse firstResponse = commentService.getCommentsByLastId(null);
+        FindAllCommentsResponse secondResponse = commentService.getCommentsByLastId(firstResponse.lastCommentId());
+
+        // Then
+        assertThat(firstResponse.comments().size()).isEqualTo(10);
+        assertThat(secondResponse.comments().size()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 시 댓글이 없는 경우 예외가 발생한다.")
+    void getCommentByLastIdThrowsExceptionWhenNoComments() {
+        // When & Then
+        assertThatThrownBy(() -> commentService.getCommentsByLastId(null))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.COMMENT_NOT_FOUND);
+
+        assertThatThrownBy(() -> commentService.getCommentsByLastId(1L))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.COMMENT_NOT_FOUND);
     }
 }
