@@ -270,7 +270,7 @@ public class CommentControllerTest {
                 new FindCommentResponse(2L, "comment 2", "2025-01-23T11:00:00", 20, 0, new FindMemberResponse(2L, "author2", null))
         );
         when(commentService.getCommentsByLastId(anyLong()))
-                .thenReturn(new FindAllCommentsResponse(comments, false, 1L));
+            .thenReturn(new FindAllCommentsResponse(comments, false, 1L));
 
         // When & Then
         mockMvc.perform(get("/comments/list/{postId}", 1L)
