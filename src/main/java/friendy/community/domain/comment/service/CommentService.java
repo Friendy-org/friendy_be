@@ -111,11 +111,6 @@ public class CommentService {
             throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_REPLY_USER);
     }
 
-    private void validatePageNumber(int requestedPage, Page<?> page) {
-        if (requestedPage >= page.getTotalPages())
-            throw new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND);
-    }
-
     private Comment getCommentByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
             .orElseThrow(() -> new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND));
