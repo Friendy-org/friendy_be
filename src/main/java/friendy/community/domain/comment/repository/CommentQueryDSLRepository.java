@@ -7,16 +7,11 @@ import friendy.community.domain.comment.dto.response.FindCommentResponse;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.QComment;
 import friendy.community.domain.member.model.QMember;
-import friendy.community.domain.post.model.QPost;
 import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
