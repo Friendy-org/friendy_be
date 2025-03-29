@@ -1,13 +1,9 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.auth.jwt.JwtTokenExtractor;
-import friendy.community.domain.auth.jwt.JwtTokenProvider;
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.request.CommentCreateRequest;
 import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
-import friendy.community.domain.comment.dto.response.FindCommentResponse;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
@@ -23,8 +19,6 @@ import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,7 +47,7 @@ public class CommentService {
     public void saveReply(final ReplyCreateRequest replyCreateRequest, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
         final Post post = getPostByPostId(replyCreateRequest.postId());
-        final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
+        final Comment parentComment = getCommentsByCommentId(replyCreateRequest.commentId());
         final Reply reply = Reply.of(replyCreateRequest, member, post, parentComment);
 
         parentComment.updateReplyCount(parentComment.getReplyCount() + 1);
@@ -62,7 +56,7 @@ public class CommentService {
 
     public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
-        final Comment comment = getCommentByCommentId(id);
+        final Comment comment = getCommentsByCommentId(id);
         validateAuthor(comment, member);
 
         comment.updateContent(commentUpdateRequest.content());
@@ -80,7 +74,7 @@ public class CommentService {
 
     public void deleteComment(final Long commentId, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
-        final Comment comment = getCommentByCommentId(commentId);
+        final Comment comment = getCommentsByCommentId(commentId);
         validateAuthor(comment, member);
 
         List<Reply> replies = replyRepository.findAllByComment(comment);
@@ -122,7 +116,7 @@ public class CommentService {
             throw new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND);
     }
 
-    private Comment getCommentByCommentId(final Long commentId) {
+    private Comment getCommentsByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
             .orElseThrow(() -> new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND));
     }
