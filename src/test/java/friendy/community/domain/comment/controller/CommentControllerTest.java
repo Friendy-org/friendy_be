@@ -268,7 +268,7 @@ public class CommentControllerTest {
                 new FindCommentResponse(1L, "comment 1", "2025-01-23T10:00:00", 10, 0, new FindMemberResponse(1L, "author1", null)),
                 new FindCommentResponse(2L, "comment 2", "2025-01-23T11:00:00", 20, 0, new FindMemberResponse(2L, "author2", null))
         );
-        when(commentService.getCommentByLastId(anyLong()))
+        when(commentService.getCommentsByLastId(anyLong()))
             .thenReturn(new FindAllCommentsResponse(comments, false, 1L));
 
         // When & Then
