@@ -120,8 +120,8 @@ public interface SpringDocCommentController {
         @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "요청 게시글이 존재하지 않습니다."),
         @ErrorCase(description = "페이지 범위 초과", exampleMessage = "요청한 페이지가 존재하지 않습니다.")
     })
-    ResponseEntity<FindAllCommentsResponse> getAllComments(
+    ResponseEntity<FriendyResponse<FindAllCommentsResponse>> getAllComments(
             @RequestParam Long postId,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(required = false) Long lastCommentId
     );
 }
