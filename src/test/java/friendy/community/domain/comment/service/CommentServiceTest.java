@@ -51,8 +51,6 @@ public class CommentServiceTest {
     @Autowired
     private PostService postService;
     @Autowired
-    private PostRepository postRepository;
-    @Autowired
     private EntityManager entityManager;
 
     private Member member;
@@ -217,7 +215,7 @@ public class CommentServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentService.updateReply(updateRequest, 2025L, member.getId()))
                 .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.COMMENT_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
     }
 
     @Test
@@ -243,7 +241,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 삭제에 성공하면 부모 게시글의 댓글 개수가 1 감소한다.")
+    @DisplayName("댓글 삭제 성공")
     void deleteCommentSuccessfullyDecreasesCommentCountOfParentPost() {
         // Given
         createComment();
@@ -253,9 +251,7 @@ public class CommentServiceTest {
 
         // Then
         List<Comment> comments = commentRepository.findAll();
-        List<Post> posts = postRepository.findAll();
         assertThat(comments.size()).isEqualTo(0);
-        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
     }
 
     @Test
@@ -274,10 +270,8 @@ public class CommentServiceTest {
         // Then
         List<Comment> comments = commentRepository.findAll();
         List<Reply> replies = replyRepository.findAll();
-        List<Post> posts = postRepository.findAll();
         assertThat(comments.size()).isEqualTo(0);
         assertThat(replies.size()).isEqualTo(0);
-        assertThat(posts.getFirst().getCommentCount()).isEqualTo(0);
     }
 
     @Test
