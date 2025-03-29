@@ -4,18 +4,15 @@ import friendy.community.domain.comment.controller.code.CommentSuccessCode;
 import friendy.community.domain.comment.dto.request.CommentCreateRequest;
 import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
-import friendy.community.domain.comment.dto.response.FindCommentResponse;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequiredArgsConstructor
@@ -81,11 +78,10 @@ public class CommentController implements SpringDocCommentController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<FindAllCommentsResponse> getAllComments(
+    public ResponseEntity<FriendyResponse<FindAllCommentsResponse>> getAllComments(
             @RequestParam Long postId,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(required = false) Long lastCommentId
     ) {
-        Pageable pageable = PageRequest.of(page, 10);
-        return ResponseEntity.ok(commentService.getComments(pageable, postId));
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.GET_ALL_COMMENTS_SUCCESS, commentService.getCommentByLastId(lastCommentId)));
     }
 }
