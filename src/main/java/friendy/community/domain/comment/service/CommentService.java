@@ -117,7 +117,7 @@ public class CommentService {
             throw new UnAuthorizedException(CommentExceptionCode.UNAUTHORIZED_REPLY_USER);
     }
 
-    private Comment getCommentsByCommentId(final Long commentId) {
+    private Comment getCommentByCommentId(final Long commentId) {
         return commentRepository.findById(commentId)
             .orElseThrow(() -> new NotFoundException(CommentExceptionCode.COMMENT_NOT_FOUND));
     }
