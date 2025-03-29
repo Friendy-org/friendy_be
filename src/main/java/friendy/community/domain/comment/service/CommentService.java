@@ -38,10 +38,6 @@ public class CommentService {
     private final ReplyRepository replyRepository;
     private final MemberService memberService;
     private final CommentQueryDSLRepository commentQueryDSLRepository;
-    private final JwtTokenExtractor jwtTokenExtractor;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthService authService;
-
     private final PostRepository postRepository;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
@@ -107,18 +103,8 @@ public class CommentService {
         replyRepository.delete(reply);
     }
 
-    public FindAllCommentsResponse getComments(final Pageable pageable, final Long postId) {
-        Post post = getPostByPostId(postId);
-
-        Pageable defaultPageable = PageRequest.of(pageable.getPageNumber(), 10);
-        Page<Comment> commentPage = commentQueryDSLRepository.findAllComments(defaultPageable, postId);
-
-        validatePageNumber(defaultPageable.getPageNumber(), commentPage);
-        List<FindCommentResponse> findCommentsResponses = commentPage.getContent().stream()
-                .map(FindCommentResponse::from)
-                .toList();
-
-        return new FindAllCommentsResponse(findCommentsResponses, commentPage.getTotalPages());
+    public FindAllCommentsResponse getCommentByLastId(final Long lastCommentId) {
+        return commentQueryDSLRepository.getCommentsByLastId(lastCommentId, 10);
     }
 
     private void validateAuthor(final Comment comment, final Member member) {
