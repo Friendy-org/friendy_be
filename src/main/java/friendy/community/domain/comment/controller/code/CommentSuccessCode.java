@@ -12,7 +12,7 @@ public enum CommentSuccessCode implements ApiCode {
     REPLY_CREATE_SUCCESS(1502, "답글 작성 성공"),
     COMMENT_UPDATE_SUCCESS(1503, "댓글 수정 성공"),
     REPLY_UPDATE_SUCCESS(1504, "답글 수정 성공"),
-
+    GET_ALL_COMMENTS_SUCCESS(1505, "댓글 목록 조회 성공"),
     REPLY_GET_ALL_SUCCESS(1506, "답글 조회 성공");
 
     private final int code;
