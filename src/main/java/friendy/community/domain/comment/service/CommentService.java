@@ -1,9 +1,6 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.auth.jwt.JwtTokenExtractor;
-import friendy.community.domain.auth.jwt.JwtTokenProvider;
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.comment.dto.request.CommentCreateRequest;
 import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
@@ -37,10 +34,6 @@ public class CommentService {
     private final ReplyQueryDSLRepository replyQueryDSLRepository;
     private final MemberService memberService;
     private final CommentQueryDSLRepository commentQueryDSLRepository;
-    private final JwtTokenExtractor jwtTokenExtractor;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthService authService;
-
     private final PostRepository postRepository;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
