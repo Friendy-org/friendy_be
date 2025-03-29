@@ -49,7 +49,7 @@ public class CommentService {
     public void saveReply(final ReplyCreateRequest replyCreateRequest, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
         final Post post = getPostByPostId(replyCreateRequest.postId());
-        final Comment parentComment = getCommentsByCommentId(replyCreateRequest.commentId());
+        final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
         final Reply reply = Reply.of(replyCreateRequest, member, post, parentComment);
 
         parentComment.updateReplyCount(parentComment.getReplyCount() + 1);
@@ -58,7 +58,7 @@ public class CommentService {
 
     public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
-        final Comment comment = getCommentsByCommentId(id);
+        final Comment comment = getCommentByCommentId(id);
         validateAuthor(comment, member);
 
         comment.updateContent(commentUpdateRequest.content());
@@ -76,7 +76,7 @@ public class CommentService {
 
     public void deleteComment(final Long commentId, final Long memberId) {
         final Member member = memberService.findMemberById(memberId);
-        final Comment comment = getCommentsByCommentId(commentId);
+        final Comment comment = getCommentByCommentId(commentId);
         validateAuthor(comment, member);
 
         List<Reply> replies = replyRepository.findAllByComment(comment);

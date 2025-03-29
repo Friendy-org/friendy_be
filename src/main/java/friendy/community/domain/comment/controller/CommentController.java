@@ -84,6 +84,7 @@ public class CommentController implements SpringDocCommentController {
             @RequestParam(required = false) Long lastCommentId
     ) {
         return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.GET_ALL_COMMENTS_SUCCESS, commentService.getCommentsByLastId(lastCommentId)));
+<<<<<<< HEAD
     }
 
     @GetMapping("/reply/list/{commentId}")
@@ -92,5 +93,7 @@ public class CommentController implements SpringDocCommentController {
             @RequestParam(required = false) Long lastReplyId
     ) {
         return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.REPLY_GET_ALL_SUCCESS, commentService.getRepliesByLastId(lastReplyId)));
+=======
+>>>>>>> 356abf1 (feat(#80): 함수명 변경)
     }
 }
