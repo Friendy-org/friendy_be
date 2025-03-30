@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "댓글 API", description = "댓글 API")
 public interface SpringDocCommentController {
@@ -110,5 +111,15 @@ public interface SpringDocCommentController {
     ResponseEntity<Void> deleteReply(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long replyId
+    );
+
+    @Operation(summary = "답글 조회")
+    @ApiResponse(responseCode = "200", description = "답글 조회 성공")
+    @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply/list/{replyId}", errorCases = {
+            @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
+    })
+    ResponseEntity<Void> getAllReplies(
+            @PathVariable Long commentId,
+            @RequestParam Long lastReplyId
     );
 }
