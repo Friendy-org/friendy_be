@@ -1,12 +1,11 @@
 package friendy.community.domain.comment.service;
 
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.*;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
 import friendy.community.domain.comment.repository.CommentRepository;
+import friendy.community.domain.comment.repository.ReplyQueryDSLRepository;
 import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
@@ -27,6 +26,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
+    private final ReplyQueryDSLRepository replyQueryDSLRepository;
     private final MemberService memberService;
     private final PostRepository postRepository;
 
@@ -91,6 +91,10 @@ public class CommentService {
         comment.updateReplyCount(comment.getReplyCount() - 1);
 
         replyRepository.delete(reply);
+    }
+
+    public FindAllReplyResponse getRepliesByLastId(Long lastReplyId) {
+        return replyQueryDSLRepository.getRepliesByLastId(lastReplyId, 10);
     }
 
     private void validateAuthor(final Comment comment, final Member member) {
