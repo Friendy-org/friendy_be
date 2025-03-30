@@ -3,6 +3,7 @@ package friendy.community.domain.comment.service;
 import friendy.community.domain.comment.controller.code.CommentExceptionCode;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.FindAllReplyResponse;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.model.Comment;
 import friendy.community.domain.comment.model.Reply;
@@ -283,5 +284,35 @@ public class CommentServiceTest {
         List<Reply> replies = replyRepository.findAll();
         assertThat(replies.size()).isEqualTo(0);
         assertThat(comments.getFirst().getReplyCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("답글 목록 조회 성공")
+    void getAllRepliesSuccessfullyReturnsFindAllReplyResponse() {
+        // Given
+        createComment();
+        for (int i = 0; i < 15; i++) {
+            commentService.saveReply(new ReplyCreateRequest("new valid content", 1L, 1L), 1L);
+        }
+
+        // When
+        FindAllReplyResponse firstResponse = commentService.getRepliesByLastId(null);
+        FindAllReplyResponse secondResponse = commentService.getRepliesByLastId(firstResponse.lastPostId());
+
+        assertThat(firstResponse.replies().size()).isEqualTo(10);
+        assertThat(secondResponse.replies().size()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("답글 목록 조회 시 답글이 없으면 예외가 발생한다.")
+    void getRepliesByLastIdThrowsExceptionWhenNoReplies() {
+        // When & Then
+        assertThatThrownBy(() -> commentService.getRepliesByLastId(null))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
+
+        assertThatThrownBy(() -> commentService.getRepliesByLastId(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
     }
 }
