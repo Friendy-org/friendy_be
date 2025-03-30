@@ -287,6 +287,15 @@ public class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("삭제할 답글이 존재하지 않으면 오류가 발생한다.")
+    void deleteNonExistReplyThrows404NotFound() {
+        // When & Then
+        assertThatThrownBy(() -> commentService.deleteReply(1L, 1L))
+            .isInstanceOf(NotFoundException.class)
+            .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("답글 목록 조회 성공")
     void getAllRepliesSuccessfullyReturnsFindAllReplyResponse() {
         // Given
