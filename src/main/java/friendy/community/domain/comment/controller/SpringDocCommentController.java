@@ -2,6 +2,7 @@ package friendy.community.domain.comment.controller;
 
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.FindAllReplyResponse;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
@@ -118,7 +119,7 @@ public interface SpringDocCommentController {
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/comments/reply/list/{replyId}", errorCases = {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
-    ResponseEntity<Void> getAllReplies(
+    ResponseEntity<FriendyResponse<FindAllReplyResponse>> getAllReplies(
             @PathVariable Long commentId,
             @RequestParam Long lastReplyId
     );
