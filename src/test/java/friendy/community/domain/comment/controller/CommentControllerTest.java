@@ -2,10 +2,9 @@ package friendy.community.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
-import friendy.community.domain.comment.dto.CommentCreateRequest;
-import friendy.community.domain.comment.dto.CommentUpdateRequest;
-import friendy.community.domain.comment.dto.ReplyCreateRequest;
+import friendy.community.domain.comment.dto.*;
 import friendy.community.domain.comment.service.CommentService;
+import friendy.community.domain.post.dto.response.FindMemberResponse;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.security.FriendyUserDetails;
@@ -25,11 +24,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -253,6 +252,23 @@ public class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andDo(print())
             .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("답글 목록 조회 성공 시 200 OK 응답")
+    void getRepliesListSuccessfullyReturns200Ok() throws Exception {
+        // Given
+        List<FindReplyResponse> replies = List.of(
+                new FindReplyResponse(1L, "reply 1", "2025-01-23T10:00:00", 10, new FindMemberResponse(1L, "author1", null)),
+                new FindReplyResponse(2L, "reply 2", "2025-01-23T11:00:00", 5, new FindMemberResponse(2L, "author2", null))
+        );
+        when(commentService.getRepliesByLastId(anyLong()))
+                .thenReturn(new FindAllReplyResponse(replies, false, 1L));
+
+        // When & Then
+        mockMvc.perform(get("/comments/reply/list/{commentId}", 1L)
+                        .param("lastReplyId", "1"))
+                .andExpect(status().isOk());
     }
 
     @Test
