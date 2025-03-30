@@ -3,6 +3,7 @@ package friendy.community.domain.comment.controller;
 import friendy.community.domain.comment.controller.code.CommentSuccessCode;
 import friendy.community.domain.comment.dto.CommentCreateRequest;
 import friendy.community.domain.comment.dto.CommentUpdateRequest;
+import friendy.community.domain.comment.dto.FindAllReplyResponse;
 import friendy.community.domain.comment.dto.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.global.response.FriendyResponse;
@@ -74,5 +75,13 @@ public class CommentController implements SpringDocCommentController {
     ) {
         commentService.deleteReply(replyId, userDetails.getMemberId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/reply/list/{commentId}")
+    public ResponseEntity<FriendyResponse<FindAllReplyResponse>> getAllReplies(
+            @PathVariable Long commentId,
+            @RequestParam(required = false) Long lastReplyId
+    ) {
+        return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.REPLY_GET_ALL_SUCCESS, commentService.getRepliesByLastId(lastReplyId)));
     }
 }
