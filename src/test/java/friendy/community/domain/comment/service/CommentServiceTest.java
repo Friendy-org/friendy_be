@@ -302,6 +302,7 @@ public class CommentServiceTest {
             .hasFieldOrPropertyWithValue("exceptionType", CommentExceptionCode.REPLY_NOT_FOUND);
     }
 
+    @Test
     @DisplayName("댓글 목록 조회 성공")
     void getAllCommentsSuccessfullyReturnsFindAllCommentsResponse() {
         // Given
