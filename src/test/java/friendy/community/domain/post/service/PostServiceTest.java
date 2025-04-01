@@ -205,7 +205,7 @@ class PostServiceTest {
         createPost();
 
         // When
-        FindPostResponse response = postService.getPost(1L);
+        FindPostResponse response = postService.getPost(1L, -1L);
 
         // Then
         assertThat(response).isNotNull();
@@ -216,7 +216,7 @@ class PostServiceTest {
     @DisplayName("존재하지 않는 게시글 조회 시 예외 발생")
     void getPostWithNonExistentIdThrowsException() {
         // When & Then
-        assertThatThrownBy(() -> postService.getPost(999L))
+        assertThatThrownBy(() -> postService.getPost(999L, -1L))
             .isInstanceOf(NotFoundException.class)
             .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
     }
@@ -230,8 +230,8 @@ class PostServiceTest {
         }
 
         // When
-        FindAllPostResponse firstResponse = postService.getPostsByLastId(null);
-        FindAllPostResponse secondResponse = postService.getPostsByLastId(firstResponse.lastPostId());
+        FindAllPostResponse firstResponse = postService.getPostsByLastId(null, -1L);
+        FindAllPostResponse secondResponse = postService.getPostsByLastId(firstResponse.lastPostId(), -1L);
 
         // Then
         assertThat(firstResponse.posts().size()).isEqualTo(10);
@@ -242,7 +242,7 @@ class PostServiceTest {
     @DisplayName("게시글이 없을 경우 예외가 발생한다.")
     void testGetPostsByLastIdThrowsExceptionWhenNoPosts() {
         // when & then
-        assertThatThrownBy(() -> postService.getPostsByLastId(null))
+        assertThatThrownBy(() -> postService.getPostsByLastId(null, -1L))
             .isInstanceOf(NotFoundException.class)
             .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_NOT_FOUND);
 
