@@ -2,7 +2,8 @@ package friendy.community.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
-import friendy.community.domain.comment.dto.*;
+import friendy.community.domain.comment.dto.FindAllReplyResponse;
+import friendy.community.domain.comment.dto.FindReplyResponse;
 import friendy.community.domain.comment.dto.request.CommentCreateRequest;
 import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
@@ -12,7 +13,9 @@ import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.post.dto.response.FindMemberResponse;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
+import friendy.community.global.config.WebConfig;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.resolver.LoggedInUserArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,16 +36,16 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = CommentController.class,
     excludeFilters = {
         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
-        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = LoggedInUserArgumentResolver.class)
     })
 @Import(MockSecurityConfig.class)
 public class CommentControllerTest {
@@ -266,16 +269,16 @@ public class CommentControllerTest {
     void getCommentsListSuccessfullyReturns200Ok() throws Exception {
         // Given
         List<FindCommentResponse> comments = List.of(
-                new FindCommentResponse(1L, "comment 1", "2025-01-23T10:00:00", 10, 0, new FindMemberResponse(1L, "author1", null)),
-                new FindCommentResponse(2L, "comment 2", "2025-01-23T11:00:00", 20, 0, new FindMemberResponse(2L, "author2", null))
+            new FindCommentResponse(1L, "comment 1", "2025-01-23T10:00:00", 10, 0, new FindMemberResponse(1L, "author1", null)),
+            new FindCommentResponse(2L, "comment 2", "2025-01-23T11:00:00", 20, 0, new FindMemberResponse(2L, "author2", null))
         );
         when(commentService.getCommentsByLastId(anyLong()))
             .thenReturn(new FindAllCommentsResponse(comments, false, 1L));
 
         // When & Then
         mockMvc.perform(get("/comments/list/{postId}", 1L)
-                        .param("lastCommentId", "1"))
-                .andExpect(status().isOk());
+                .param("lastCommentId", "1"))
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -283,16 +286,16 @@ public class CommentControllerTest {
     void getRepliesListSuccessfullyReturns200Ok() throws Exception {
         // Given
         List<FindReplyResponse> replies = List.of(
-                new FindReplyResponse(1L, "reply 1", "2025-01-23T10:00:00", 10, new FindMemberResponse(1L, "author1", null)),
-                new FindReplyResponse(2L, "reply 2", "2025-01-23T11:00:00", 5, new FindMemberResponse(2L, "author2", null))
+            new FindReplyResponse(1L, "reply 1", "2025-01-23T10:00:00", 10, new FindMemberResponse(1L, "author1", null)),
+            new FindReplyResponse(2L, "reply 2", "2025-01-23T11:00:00", 5, new FindMemberResponse(2L, "author2", null))
         );
         when(commentService.getRepliesByLastId(anyLong()))
-                .thenReturn(new FindAllReplyResponse(replies, false, 1L));
+            .thenReturn(new FindAllReplyResponse(replies, false, 1L));
 
         // When & Then
         mockMvc.perform(get("/comments/reply/list/{commentId}", 1L)
                 .param("lastReplyId", "1"))
-                .andExpect(status().isOk());
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -305,9 +308,9 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/comments/{commentId}", commentId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -320,8 +323,8 @@ public class CommentControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/comments/reply/{replyId}", replyId)
-                    .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 }

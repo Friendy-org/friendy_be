@@ -83,6 +83,19 @@ class JwtTokenFilterTest {
     }
 
     @Test
+    @DisplayName("토큰이 null인 경우 필터 체인을 진행한다.")
+    void shouldProceedWithFilterChainWhenTokenIsNull() throws Exception {
+        // Given
+        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(null);
+
+        // When
+        jwtTokenFilter.doFilterInternal(request, response, filterChain);
+
+        // Then
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
     @DisplayName("사용자가 이메일을 찾을 수 없으면 예외가 발생한다.")
     void shouldThrowExceptionWhenUserNotFound() {
         // Given
@@ -131,45 +144,11 @@ class JwtTokenFilterTest {
     }
 
     @Test
-    @DisplayName("JWT 토큰이 존재하지 않을 경우 UnAuthorizedException을 던진다")
-    void shouldThrowUnAuthorizedExceptionWhenTokenIsNull() throws ServletException, IOException {
-        // given
-        when(jwtTokenExtractor.extractAccessToken(request)).thenReturn(null);
-        PrintWriter mockWriter = Mockito.mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(mockWriter);
-        doNothing().when(mockWriter).write(anyString());
-
-        // when
-        jwtTokenFilter.doFilterInternal(request, response, filterChain);
-
-        // then
-        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        verify(response).setContentType("application/json");
-        verify(response).setCharacterEncoding("UTF-8");
-
-    }
-
-    @Test
     @DisplayName("public URI에 대해서는 필터가 적용되지 않아야 한다.")
     void shouldNotFilterForPublicUri() throws Exception {
         // Given
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/swagger-ui");
-
-        // When
-        boolean shouldNotFilter = jwtTokenFilter.shouldNotFilter(request);
-
-        // Then
-        assertTrue(shouldNotFilter);
-    }
-
-    @Test
-    @DisplayName("GET 메소드에 대해 public API URI는 필터링되지 않아야 한다")
-    void shouldNotFilterForPublicApiUriWithMethod() throws Exception {
-        // Given
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setRequestURI("/posts/");
-        request.setMethod("GET");
 
         // When
         boolean shouldNotFilter = jwtTokenFilter.shouldNotFilter(request);
