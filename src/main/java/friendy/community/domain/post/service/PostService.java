@@ -76,13 +76,13 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public FindPostResponse getPost(final Long postId, final FriendyUserDetails userDetails) {
+    public FindPostResponse getPost(final Long postId, final Long memberId) {
         Post post = postQueryDSLRepository.findPostById(postId)
             .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
-        return FindPostResponse.from(post, isPostOwner(post, userDetails));
+        return FindPostResponse.from(post, isPostOwner(post, memberId));
     }
 
-    public FindAllPostResponse getPostsByLastId(Long lastPostId, FriendyUserDetails userDetails) {
+    public FindAllPostResponse getPostsByLastId(Long lastPostId, final Long memberId) {
         List<Post> posts = postQueryDSLRepository.findPostsByLastId(lastPostId, 10);
 
         if (posts.isEmpty()) {
@@ -96,7 +96,7 @@ public class PostService {
         Long newLastPostId = posts.get(posts.size() - 1).getId();
 
         List<FindPostResponse> postResponses = posts.stream()
-            .map(post -> FindPostResponse.from(post, isPostOwner(post, userDetails)))
+            .map(post -> FindPostResponse.from(post, isPostOwner(post, memberId)))
             .collect(Collectors.toList());
 
         return new FindAllPostResponse(postResponses, hasNext, newLastPostId);
@@ -107,8 +107,8 @@ public class PostService {
             .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
     }
 
-    public boolean isPostOwner(final Post post, final FriendyUserDetails userDetails) {
-        return post.getMember().getId().equals(userDetails.getMemberId());
+    public boolean isPostOwner(final Post post, final Long memberId) {
+        return post.getMember().getId().equals(memberId);
     }
 
     private Post validatePostExistence(Long postId) {
