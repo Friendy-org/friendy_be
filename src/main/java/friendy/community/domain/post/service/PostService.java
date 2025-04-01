@@ -1,8 +1,5 @@
 package friendy.community.domain.post.service;
 
-import friendy.community.domain.comment.model.Comment;
-import friendy.community.domain.comment.repository.CommentRepository;
-import friendy.community.domain.comment.service.CommentService;
 import friendy.community.domain.hashtag.service.HashtagService;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.service.MemberService;
@@ -17,9 +14,13 @@ import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
+import friendy.community.global.security.FriendyUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,20 +76,39 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public FindPostResponse getPost(final Long postId) {
+    public FindPostResponse getPost(final Long postId, final FriendyUserDetails userDetails) {
         Post post = postQueryDSLRepository.findPostById(postId)
             .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
-
-        return FindPostResponse.from(post);
+        return FindPostResponse.from(post, isPostOwner(post, userDetails));
     }
 
-    public FindAllPostResponse getPostsByLastId(Long lastPostId) {
-        return postQueryDSLRepository.getPostsByLastId(lastPostId, 10);
+    public FindAllPostResponse getPostsByLastId(Long lastPostId, FriendyUserDetails userDetails) {
+        List<Post> posts = postQueryDSLRepository.findPostsByLastId(lastPostId, 10);
+
+        if (posts.isEmpty()) {
+            throw new NotFoundException(PostExceptionCode.POST_NOT_FOUND);
+        }
+
+        boolean hasNext = posts.size() > 10;
+        if (hasNext) {
+            posts.remove(posts.size() - 1);
+        }
+        Long newLastPostId = posts.get(posts.size() - 1).getId();
+
+        List<FindPostResponse> postResponses = posts.stream()
+            .map(post -> FindPostResponse.from(post, isPostOwner(post, userDetails)))
+            .collect(Collectors.toList());
+
+        return new FindAllPostResponse(postResponses, hasNext, newLastPostId);
     }
 
     public Post getPostById(Long postId) {
         return postRepository.findById(postId)
             .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
+    }
+
+    public boolean isPostOwner(final Post post, final FriendyUserDetails userDetails) {
+        return post.getMember().getId().equals(userDetails.getMemberId());
     }
 
     private Post validatePostExistence(Long postId) {
