@@ -1,7 +1,6 @@
 package friendy.community.domain.auth.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import friendy.community.domain.auth.controller.code.AuthExceptionCode;
 import friendy.community.global.config.SecurityPathConfig;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import friendy.community.global.exception.dto.ExceptionResponse;
@@ -20,8 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
-import static friendy.community.global.config.SecurityPathConfig.isPublicApiUriWithMethod;
+import java.util.Collections;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -43,16 +41,18 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String token = jwtTokenExtractor.extractAccessToken(request);
 
             if (token == null) {
-                if (isPublicApiUriWithMethod(request.getRequestURI(), request.getMethod())) {
-                    filterChain.doFilter(request, response);
-                } else {
-                    throw new UnAuthorizedException(AuthExceptionCode.MISSING_ACCESS_TOKEN);
-                }
+                FriendyUserDetails friendyUserDetails = friendyUserDetailsService.createAnonymousUser();
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    friendyUserDetails,
+                    null,
+                    Collections.emptyList()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                jwtTokenProvider.validateAccessToken(token);
+
+                setAuthentication(token);
             }
-
-            jwtTokenProvider.validateAccessToken(token);
-
-            setAuthentication(token);
 
             filterChain.doFilter(request, response);
         } catch (UnAuthorizedException e) {
