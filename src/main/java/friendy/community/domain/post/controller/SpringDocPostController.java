@@ -7,6 +7,7 @@ import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,7 @@ public interface SpringDocPostController {
 
     })
     ResponseEntity<FriendyResponse<Void>> createPost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @RequestBody PostCreateRequest postRequest
     );
 
@@ -57,7 +58,7 @@ public interface SpringDocPostController {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<FriendyResponse<PostIdResponse>> updatePost(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest
     );
@@ -79,7 +80,7 @@ public interface SpringDocPostController {
         @ErrorCase(description = "파일 삭제 실패", exampleMessage = "파일을 삭제하지 못햇습니다.")
     })
     ResponseEntity<FriendyResponse<Void>> deletePost(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long postId
     );
 
@@ -89,7 +90,8 @@ public interface SpringDocPostController {
             @ErrorCase(description = "존재하지 않는 게시글 ID", exampleMessage = "존재하지 않는 게시글입니다.")
     })
     ResponseEntity<FriendyResponse<FindPostResponse>> getPost(
-            @PathVariable Long postId
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long postId
     );
 
     @Operation(summary = "게시글 목록 조회", description = "페이지네이션을 통해 게시글 목록을 조회합니다.")
@@ -98,6 +100,7 @@ public interface SpringDocPostController {
         @ErrorCase(description = "게시글이 없습니다.", exampleMessage = "게시글이 없습니다.")
     })
     ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
         @RequestParam(required = false) Long lastPostId
     );
 

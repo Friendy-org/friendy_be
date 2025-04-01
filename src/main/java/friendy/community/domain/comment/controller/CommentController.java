@@ -9,6 +9,7 @@ import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.domain.comment.service.CommentService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class CommentController implements SpringDocCommentController {
 
     @PostMapping()
     public ResponseEntity<FriendyResponse<Void>> createComment(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @Valid @RequestBody CommentCreateRequest commentRequest
     ) {
         commentService.saveComment(commentRequest, userDetails.getMemberId());
@@ -33,7 +34,7 @@ public class CommentController implements SpringDocCommentController {
 
     @PostMapping("/reply")
     public ResponseEntity<FriendyResponse<Void>> createReply(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @Valid @RequestBody ReplyCreateRequest replyRequest
     ) {
         commentService.saveReply(replyRequest, userDetails.getMemberId());
@@ -42,7 +43,7 @@ public class CommentController implements SpringDocCommentController {
 
     @PostMapping("/{commentId}")
     public ResponseEntity<FriendyResponse<Void>>updateComment(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long commentId,
         @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
@@ -52,7 +53,7 @@ public class CommentController implements SpringDocCommentController {
 
     @PostMapping("/reply/{replyId}")
     public ResponseEntity<FriendyResponse<Void>> updateReply(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long replyId,
         @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ) {
@@ -62,7 +63,7 @@ public class CommentController implements SpringDocCommentController {
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long commentId
     ) {
         commentService.deleteComment(commentId, userDetails.getMemberId());
@@ -71,7 +72,7 @@ public class CommentController implements SpringDocCommentController {
 
     @DeleteMapping("/reply/{replyId}")
     public ResponseEntity<Void> deleteReply(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long replyId
     ) {
         commentService.deleteReply(replyId, userDetails.getMemberId());

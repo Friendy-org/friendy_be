@@ -5,6 +5,7 @@ import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.service.FollowService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,7 +19,7 @@ public class FollowController implements SpringDocFollowController {
 
     @PostMapping("/{targetId}")
     public ResponseEntity<FriendyResponse<Void>> follow(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable final Long targetId
     ) {
         followService.follow(userDetails.getMemberId(), targetId);
@@ -27,7 +28,7 @@ public class FollowController implements SpringDocFollowController {
 
     @DeleteMapping("/{targetId}")
     public ResponseEntity<FriendyResponse<Void>> unfollow(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long targetId
     ) {
         followService.unfollow(userDetails.getMemberId(), targetId);

@@ -8,6 +8,7 @@ import friendy.community.domain.comment.dto.request.CommentUpdateRequest;
 import friendy.community.domain.comment.dto.request.ReplyCreateRequest;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.domain.comment.dto.response.FindAllCommentsResponse;
+import friendy.community.global.security.annotation.LoggedInUser;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +34,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 게시글 id", exampleMessage = "요청 게시글이 존재하지 않습니다.")
     })
     ResponseEntity<FriendyResponse<Void>> createComment(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @RequestBody CommentCreateRequest commentRequest
     );
 
@@ -50,7 +51,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> updateComment(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
     );
@@ -68,7 +69,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> createReply(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @RequestBody ReplyCreateRequest replyRequest
     );
 
@@ -85,7 +86,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 답글 id", exampleMessage = "존재하지 않는 답글입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> updateReply(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest commentUpdateRequest
     );
@@ -99,7 +100,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 댓글 id", exampleMessage = "존재하지 않는 댓글입니다.")
     })
     ResponseEntity<Void> deleteComment(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long commentId
     );
 
@@ -112,7 +113,7 @@ public interface SpringDocCommentController {
             @ErrorCase(description = "잘못된 답글 id", exampleMessage = "존재하지 않는 답글입니다.")
     })
     ResponseEntity<Void> deleteReply(
-            @AuthenticationPrincipal FriendyUserDetails userDetails,
+            @LoggedInUser FriendyUserDetails userDetails,
             @PathVariable Long replyId
     );
 
