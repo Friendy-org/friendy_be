@@ -3,6 +3,7 @@ package friendy.community.domain.follow.controller;
 import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +30,7 @@ public interface SpringDocFollowController {
         @ErrorCase(description = "이미 팔로우한 회원", exampleMessage = "이미 팔로우한 회원입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> follow(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long targetId
     );
 
@@ -45,7 +46,7 @@ public interface SpringDocFollowController {
         @ErrorCase(description = "팔로우하지 않은 회원입니다.", exampleMessage = "팔로우하지 않은 회원입니다.")
     })
     ResponseEntity<FriendyResponse<Void>> unfollow(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long targetId
     );
 

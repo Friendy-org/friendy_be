@@ -9,6 +9,7 @@ import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.domain.post.service.PostService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class PostController implements SpringDocPostController {
 
     @PostMapping
     public ResponseEntity<FriendyResponse<Void>> createPost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @Valid @RequestBody PostCreateRequest postCreateRequest
     ) {
         postService.savePost(postCreateRequest, userDetails.getMemberId());
@@ -35,7 +36,7 @@ public class PostController implements SpringDocPostController {
 
     @PostMapping("/{postId}")
     public ResponseEntity<FriendyResponse<PostIdResponse>> updatePost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long postId,
         @Valid @RequestBody PostUpdateRequest postUpdateRequest
     ) {
@@ -45,7 +46,7 @@ public class PostController implements SpringDocPostController {
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<FriendyResponse<Void>> deletePost(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @LoggedInUser FriendyUserDetails userDetails,
         @PathVariable Long postId
     ) {
         postService.deletePost(userDetails.getMemberId(), postId);
@@ -54,15 +55,21 @@ public class PostController implements SpringDocPostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<FriendyResponse<FindPostResponse>> getPost(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long postId
     ) {
-        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.GET_POST_SUCCESS, postService.getPost(postId)));
+        return ResponseEntity.ok(FriendyResponse.of(
+            PostSuccessCode.GET_POST_SUCCESS,
+            postService.getPost(postId, userDetails)));
     }
 
     @GetMapping("/list")
     public ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
         @RequestParam(required = false) Long lastPostId
     ) {
-        return ResponseEntity.ok(FriendyResponse.of(PostSuccessCode.GET_ALL_POSTS_SUCCESS, postService.getPostsByLastId(lastPostId)));
+        return ResponseEntity.ok(FriendyResponse.of(
+            PostSuccessCode.GET_ALL_POSTS_SUCCESS,
+            postService.getPostsByLastId(lastPostId, userDetails)));
     }
 }
