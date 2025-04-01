@@ -8,7 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AuthExceptionCode implements ExceptionCode {
 
-    LOGIN_FAILED_EXCEPTION(4101, "로그인에 실패하였습니다."),
+    UNAUTHORIZED_ACCESS(4101, "로그인된 사용자만 접근 가능합니다."),
     ACCESS_TOKEN_EXTRACTION_FAILED(4102, "access 토큰 추출 실패"),
     REFRESH_TOKEN_EXTRACTION_FAILED(4103, "refresh 토큰 추출 실패"),
     ACCESS_TOKEN_EMAIL_MISSING(4104, "인증 실패(JWT 액세스 토큰 Payload 이메일 누락)"),
