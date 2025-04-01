@@ -60,7 +60,7 @@ public class PostController implements SpringDocPostController {
     ) {
         return ResponseEntity.ok(FriendyResponse.of(
             PostSuccessCode.GET_POST_SUCCESS,
-            postService.getPost(postId, userDetails)));
+            postService.getPost(postId, userDetails.getMemberId())));
     }
 
     @GetMapping("/list")
@@ -70,6 +70,6 @@ public class PostController implements SpringDocPostController {
     ) {
         return ResponseEntity.ok(FriendyResponse.of(
             PostSuccessCode.GET_ALL_POSTS_SUCCESS,
-            postService.getPostsByLastId(lastPostId, userDetails)));
+            postService.getPostsByLastId(lastPostId, userDetails.getMemberId())));
     }
 }
