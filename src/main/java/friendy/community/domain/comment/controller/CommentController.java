@@ -40,6 +40,7 @@ public class CommentController implements SpringDocCommentController {
         return ResponseEntity.ok(FriendyResponse.of(CommentSuccessCode.REPLY_CREATE_SUCCESS));
     }
 
+    
     @PostMapping("/{commentId}")
     public ResponseEntity<FriendyResponse<Void>>updateComment(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
