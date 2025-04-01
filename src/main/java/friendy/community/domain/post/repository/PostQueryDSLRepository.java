@@ -2,19 +2,14 @@ package friendy.community.domain.post.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import friendy.community.domain.member.model.QMember;
-import friendy.community.domain.post.controller.code.PostExceptionCode;
-import friendy.community.domain.post.dto.response.FindAllPostResponse;
-import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.model.QPost;
 import friendy.community.domain.post.model.QPostImage;
-import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -32,31 +27,13 @@ public class PostQueryDSLRepository {
         );
     }
 
-    public FindAllPostResponse getPostsByLastId(Long lastPostId, int size) {
-        List<Post> posts = queryFactory.selectFrom(QPost.post)
+    public List<Post> findPostsByLastId(Long lastPostId, int size) {
+        return queryFactory.selectFrom(QPost.post)
             .leftJoin(QPost.post.member, QMember.member).fetchJoin()
             .leftJoin(QPost.post.images, QPostImage.postImage).fetchJoin()
-            .where(
-                lastPostId != null ? QPost.post.id.lt(lastPostId) : null
-            )
+            .where(lastPostId != null ? QPost.post.id.lt(lastPostId) : null)
             .orderBy(QPost.post.id.desc())
             .limit(size + 1)
             .fetch();
-
-        if (posts.isEmpty()) {
-            throw new NotFoundException(PostExceptionCode.POST_NOT_FOUND);
-        }
-
-        boolean hasNext = posts.size() > size;
-        if (hasNext) {
-            posts.removeLast();
-        }
-        Long newLastPostId = posts.getLast().getId();
-
-        List<FindPostResponse> postResponses = posts.stream()
-            .map(FindPostResponse::from)
-            .collect(Collectors.toList());
-
-        return new FindAllPostResponse(postResponses, hasNext, newLastPostId);
     }
 }
