@@ -25,4 +25,13 @@ public class FriendyUserDetailsService implements UserDetailsService {
             Collections.emptyList()
         );
     }
+
+    public FriendyUserDetails createAnonymousUser() {
+        return new FriendyUserDetails(
+            -1L,  
+            "",
+            "",
+            Collections.emptyList()
+        );
+    }
 }
