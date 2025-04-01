@@ -16,17 +16,17 @@ public record FindPostResponse(
         int commentCount,
         int shareCount,
         FindMemberResponse authorResponse,
-        List<String> imageUrls
+        List<String> imageUrls,
+        Boolean me
 ) {
 
-    public static FindPostResponse from(Post post) {
-        // 이미지 URL을 PostImage 객체에서 가져와 List<String>으로 변환
+    public static FindPostResponse from(Post post, Boolean me) {
         List<String> imageUrls = post.getImages().stream()
             .map(PostImage::getImageUrl)
             .collect(Collectors.toList());
 
         if (imageUrls.isEmpty()) {
-            imageUrls = List.of(); // 빈 리스트
+            imageUrls = List.of();
         }
 
         return new FindPostResponse(
@@ -37,7 +37,8 @@ public record FindPostResponse(
             post.getCommentCount(),
             post.getShareCount(),
             FindMemberResponse.from(post.getMember()),
-            imageUrls // 이미지 URL 리스트 추가
+            imageUrls, 
+            me
         );
     }
 
