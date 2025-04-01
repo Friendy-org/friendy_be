@@ -5,7 +5,9 @@ import friendy.community.domain.follow.dto.response.FollowListResponse;
 import friendy.community.domain.follow.service.FollowService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
+import friendy.community.global.config.WebConfig;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.resolver.LoggedInUserArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = FollowController.class,
     excludeFilters = {
         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
-        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = LoggedInUserArgumentResolver.class)
     })
 @Import(MockSecurityConfig.class)
 class FollowControllerTest {
@@ -80,7 +84,7 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로잉 목록 조회 API 성공")
     void getFollowingMembersSuccess() throws Exception {
-        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false,null);
+        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false, null);
 
         when(followService.getFollowingMembers(any(), any()))
             .thenReturn(mockResponse);
@@ -94,7 +98,7 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로워 목록 조회 API 성공")
     void getFollowerMembersSuccess() throws Exception {
-        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false , null);
+        FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false, null);
 
         when(followService.getFollowerMembers(any(), any()))
             .thenReturn(mockResponse);
