@@ -30,7 +30,7 @@ public class AuthService {
         final String accessToken = jwtTokenProvider.generateAccessToken(request.email());
         final String refreshToken = jwtTokenProvider.generateRefreshToken(request.email());
 
-        return TokenResponse.of(accessToken, refreshToken);
+        return TokenResponse.of(member.getId(), accessToken, refreshToken);
     }
 
     public void logout(final String accessToken) {
@@ -44,7 +44,7 @@ public class AuthService {
         final String newAccessToken = jwtTokenProvider.generateAccessToken(member.getEmail());
         final String newRefreshToken = jwtTokenProvider.generateRefreshToken(member.getEmail());
 
-        return TokenResponse.of(newAccessToken, newRefreshToken);
+        return TokenResponse.of(member.getId(), newAccessToken, newRefreshToken);
     }
 
     public void withdrawal(final String accessToken) {
