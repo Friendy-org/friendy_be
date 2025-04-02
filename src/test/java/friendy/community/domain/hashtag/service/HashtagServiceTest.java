@@ -46,7 +46,7 @@ class HashtagServiceTest {
         Member member = MemberFixture.memberFixture();
         memberRepository.save(member);
 
-        PostCreateRequest postCreateRequest = new PostCreateRequest("This is a test post", List.of(),null);
+        PostCreateRequest postCreateRequest = new PostCreateRequest("This is a test post", List.of(),null,"창원시");
         post = Post.of(postCreateRequest, member);
         postRepository.save(post);
     }

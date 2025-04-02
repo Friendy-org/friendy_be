@@ -60,7 +60,7 @@ class AuthControllerTest {
     void loginSuccessfullyReturnsTokensInHeaders() throws Exception {
         // Given
         LoginRequest loginRequest = new LoginRequest("example@friendy.com", "password123!");
-        TokenResponse loginResponse = TokenResponse.of("accessToken", "refreshToken");
+        TokenResponse loginResponse = TokenResponse.of(1L,"accessToken", "refreshToken");
 
         when(authService.login(any(LoginRequest.class))).thenReturn(loginResponse);
 
@@ -214,7 +214,7 @@ class AuthControllerTest {
         when(jwtTokenExtractor.extractRefreshToken(any(HttpServletRequest.class)))
             .thenReturn("refreshToken");
 
-        TokenResponse tokenResponse = TokenResponse.of("newAccessToken", "newRefreshToken");
+        TokenResponse tokenResponse = TokenResponse.of(1L,"newAccessToken", "newRefreshToken");
         when(authService.reissueToken("refreshToken")).thenReturn(tokenResponse);
 
         // When & Then

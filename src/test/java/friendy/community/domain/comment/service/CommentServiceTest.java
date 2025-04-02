@@ -65,7 +65,7 @@ public class CommentServiceTest {
         member = memberService.findMemberById(memberId);
 
         Post post = PostFixture.postFixture();
-        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null), member.getId());
+        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null,"창원시"), member.getId());
     }
 
     private void resetDataBase() {

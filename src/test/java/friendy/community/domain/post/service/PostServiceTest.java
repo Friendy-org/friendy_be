@@ -98,7 +98,7 @@ class PostServiceTest {
 
     private Long createPost() {
         Post post = PostFixture.postFixture();
-        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null), member.getId());
+        return postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null, "창원시"), member.getId());
     }
 
     private void signUpOtherUser() {
@@ -121,7 +121,7 @@ class PostServiceTest {
     void updatePostSuccessfullyReturnsPostId() {
         // Given
         createPost();
-        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"), null);
+        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"), null, "창원시");
 
         // When
         postService.updatePost(request, member.getId(), 1L);
@@ -134,7 +134,7 @@ class PostServiceTest {
     @DisplayName("존재하지 않는 게시글 수정 시 예외 발생")
     void throwsExceptionWhenPostNotFoundOnUpdate() {
         // Given
-        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"), null);
+        PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"), null, "창원시");
 
         // When & Then
         assertThatThrownBy(() -> postService.updatePost(request, member.getId(), 999L))
@@ -153,7 +153,7 @@ class PostServiceTest {
 
         // Then
         assertThatThrownBy(() -> postService.updatePost(
-            new PostUpdateRequest("Updated content", List.of("업데이트"), null), 2L, 1L), null)
+            new PostUpdateRequest("Updated content", List.of("업데이트"), null, "창원시"), 2L, 1L), null)
             .isInstanceOf(UnAuthorizedException.class)
             .hasFieldOrPropertyWithValue("exceptionType", PostExceptionCode.POST_FORBIDDEN_ACCESS);
     }
@@ -164,7 +164,8 @@ class PostServiceTest {
         // Given
         postService.savePost(new PostCreateRequest("content",
             List.of("프렌디", "개발", "스터디"),
-            List.of("https://example.com/image1.jpg")), member.getId());
+            List.of("https://example.com/image1.jpg"),
+            "창원시"), member.getId());
 
         doNothing().when(s3Service).deleteFromS3(anyString());
         // When
@@ -258,7 +259,8 @@ class PostServiceTest {
         PostCreateRequest request = new PostCreateRequest(
             "프렌디 게시글 내용입니다.",
             List.of("프렌디", "개발", "스터디"),
-            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg")
+            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg"),
+            "창원시"
         );
 
         // When
@@ -274,10 +276,12 @@ class PostServiceTest {
         // Given
         postService.savePost(new PostCreateRequest("content",
             List.of("프렌디", "개발", "스터디"),
-            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg")), member.getId());
+            List.of("https://example.com/image1.jpg", "https://example.com/image2.jpg"),
+            "창원시"), member.getId());
 
         PostUpdateRequest request = new PostUpdateRequest("Updated content", List.of("업데이트"),
-            List.of("https://example.com/image1.jpg", "https://example.com/image3.jpg", "https://s3.us-east-1.amazonaws.com/post/image.jpg"));
+            List.of("https://example.com/image1.jpg", "https://example.com/image3.jpg", "https://s3.us-east-1.amazonaws.com/post/image.jpg"),
+            "창원시");
 
         // When
         postService.updatePost(request, member.getId(), 1L);
