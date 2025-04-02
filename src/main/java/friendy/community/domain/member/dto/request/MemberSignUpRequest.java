@@ -28,7 +28,7 @@ public record MemberSignUpRequest(
         @NotNull(message = "생년월일이 입력되지 않았습니다.")
         LocalDate birthDate,
 
-        @Schema(description = "프로필 이미지 URL (선택 사항)", example = "https://example.com/profile.jpg")
+        @Schema(description = "프로필 이미지 URL (선택 사항)", example = "https://friendybucket.s3.us-east-2.amazonaws.com/test/7f96f3a9-37aa-48e5-b49f-76ab0201d78c.jpg")
         @Pattern(regexp = "^(https?|ftp)://.*$", message = "유효한 URL 형식이어야 합니다.")
         @Size(max = 255, message = "이미지 URL은 255자 이내로 입력해주세요.")
         String imageUrl
