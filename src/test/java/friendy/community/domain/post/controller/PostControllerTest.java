@@ -77,7 +77,12 @@ class PostControllerTest {
     @DisplayName("게시글 생성 성공 시 201 Created 응답")
     void createPostSuccessfullyReturns201Created() throws Exception {
         // Given
-        PostCreateRequest request = new PostCreateRequest("this is new content", List.of("프렌디", "개발", "스터디"), null,"창원시");
+        PostCreateRequest request = new PostCreateRequest(
+            "this is new content",
+            List.of("프렌디", "개발", "스터디"),
+            List.of("https://example.com/image.jpg"),
+            "창원시"
+        );
         when(postService.savePost(any(PostCreateRequest.class), anyLong())).thenReturn(1L);
 
         // When & Then
