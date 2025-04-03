@@ -1,8 +1,5 @@
 package friendy.community.domain.member.service;
 
-import friendy.community.domain.auth.jwt.JwtTokenExtractor;
-import friendy.community.domain.auth.jwt.JwtTokenProvider;
-import friendy.community.domain.auth.service.AuthService;
 import friendy.community.domain.member.controller.code.MemberExceptionCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
@@ -12,11 +9,9 @@ import friendy.community.domain.member.encryption.SaltGenerator;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.model.MemberImage;
 import friendy.community.domain.member.repository.MemberRepository;
-import friendy.community.global.exception.domain.BadRequestException;
-import friendy.community.global.exception.domain.ConflictException;
-import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.domain.upload.service.S3service;
-import jakarta.servlet.http.HttpServletRequest;
+import friendy.community.global.exception.domain.BadRequestException;
+import friendy.community.global.exception.domain.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,8 +24,6 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final SaltGenerator saltGenerator;
     private final PasswordEncryptor passwordEncryptor;
-    private final JwtTokenExtractor jwtTokenExtractor;
-    private final JwtTokenProvider jwtTokenProvider;
     private final S3service s3service;
 
     public Long signup(MemberSignUpRequest request) {
@@ -57,14 +50,11 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public FindMemberResponse getMemberInfo(HttpServletRequest httpServletRequest, Long memberId) {
-        final String accessToken = jwtTokenExtractor.extractAccessToken(httpServletRequest);
-        final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
+    public FindMemberResponse getMemberInfo(final Long requesterId, Long memberId) {
 
-        final Member member = findMemberById(memberId);
-        boolean isMe = isCurrentUser(member, email);
-
-        return FindMemberResponse.from(member, isMe);
+        final Member profileMember = findMemberById(memberId);
+        boolean isMe = isOwnerOfProfile(requesterId, memberId);
+        return FindMemberResponse.from(profileMember, isMe);
     }
 
     public void validateUniqueMemberAttributes(MemberSignUpRequest request) {
@@ -94,8 +84,8 @@ public class MemberService {
             .orElseThrow(() -> new NotFoundException(MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION));
     }
 
-    private boolean isCurrentUser(Member member, String email) {
-        return member.getEmail().equals(email);
+    private boolean isOwnerOfProfile(Long viewerId, Long profileOwnerId) {
+        return profileOwnerId.equals(viewerId);
     }
 
     public MemberImage saveProfileImage(MemberSignUpRequest request) {
