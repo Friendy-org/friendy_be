@@ -111,6 +111,10 @@ public class PostService {
         return post.getMember().getId().equals(memberId);
     }
 
+    public List<Post> getPostsByMemberId(Long memberId, Long lastPostId) {
+        return postQueryDSLRepository.findPostsByMemberId(memberId, lastPostId);
+    }
+
     private Post validatePostExistence(Long postId) {
         return postRepository.findById(postId)
             .orElseThrow(() -> new NotFoundException(PostExceptionCode.POST_NOT_FOUND));
