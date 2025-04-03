@@ -36,4 +36,18 @@ public class PostQueryDSLRepository {
             .limit(size + 1)
             .fetch();
     }
+
+    public List<Post> findPostsByMemberId(Long memberId, Long lastPostId) {
+        return queryFactory.selectFrom(QPost.post)
+            .leftJoin(QPost.post.member, QMember.member).fetchJoin()
+            .leftJoin(QPost.post.images, QPostImage.postImage).fetchJoin()
+            .where(
+                QMember.member.id.eq(memberId)
+                    .and(lastPostId != null ? QPost.post.id.lt(lastPostId) : null)
+            )
+            .orderBy(QPost.post.id.desc())
+            .limit(13)
+            .fetch();
+    }
+
 }
