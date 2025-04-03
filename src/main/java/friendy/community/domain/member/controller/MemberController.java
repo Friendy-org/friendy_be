@@ -4,13 +4,15 @@ import friendy.community.domain.member.controller.code.MemberSuccessCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
+import friendy.community.domain.member.dto.response.PagedMemberPostsResponse;
 import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.response.FriendyResponse;
-import jakarta.servlet.http.HttpServletRequest;
+import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,11 +38,23 @@ public class MemberController implements SpringDocMemberController {
 
     @GetMapping("/member/{memberId}")
     public ResponseEntity<FriendyResponse<FindMemberResponse>> getMemberInfo(
-        HttpServletRequest httpServletRequest,
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long memberId
     ) {
-        memberService.getMemberInfo(httpServletRequest, memberId);
-        FriendyResponse<FindMemberResponse> response = FriendyResponse.of(MemberSuccessCode.GET_MEMBER_INFO_SUCCESS, memberService.getMemberInfo(httpServletRequest, memberId));
+        memberService.getMemberInfo(userDetails.getMemberId(), memberId);
+        FriendyResponse<FindMemberResponse> response = FriendyResponse.of(
+            MemberSuccessCode.GET_MEMBER_INFO_SUCCESS,
+            memberService.getMemberInfo(userDetails.getMemberId(), memberId));
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/member/{memberId}/posts")
+    public ResponseEntity<FriendyResponse<PagedMemberPostsResponse>> getMemberPosts(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long memberId
+    ) {
+        PagedMemberPostsResponse response = memberService.getPostsByMember(memberId, lastPostId);
+        return ResponseEntity.ok(FriendyResponse.of(MemberSuccessCode.GET_MEMBER_POSTS_SUCCESS, response));
+    }
 }
+
