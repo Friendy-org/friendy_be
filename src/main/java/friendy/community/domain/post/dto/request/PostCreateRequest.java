@@ -20,7 +20,7 @@ public record PostCreateRequest(
             description = "게시글 이미지 목록",
             example = "[\"https://friendybucket.s3.us-east-2.amazonaws.com/test/d08f0a96-3386-413e-96c1-bc85cfdaa2fc.jpg\", \"https://friendybucket.s3.us-east-2.amazonaws.com/test/d08f0a96-3386-413e-96c1-bc85cfdaa2fc.jpg\"]"
         )
-        @NotEmpty(message = "게시글은 최소 1개 이상 등록해야 합니다.")
+        @NotEmpty(message = "게시글이미지는 최소 1개 이상 등록해야 합니다.")
         List<String> imageUrls,
 
         @Schema(description = "위치", example = "부산 광역시")
