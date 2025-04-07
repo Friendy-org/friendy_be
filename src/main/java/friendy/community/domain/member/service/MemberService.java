@@ -62,6 +62,12 @@ public class MemberService {
         assertUniqueName(request.nickname());
     }
 
+    public void validateExists(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new NotFoundException(MemberExceptionCode.USER_NOT_FOUND_EXCEPTION);
+        }
+    }
+
     public void assertUniqueEmail(String email) {
         if (memberRepository.existsByEmail(email)) {
             throw new BadRequestException(MemberExceptionCode.DUPLICATE_EMAIL_EXCEPTION);
