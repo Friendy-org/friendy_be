@@ -1,4 +1,4 @@
-package friendy.community.domain.member.dto.response;
+package friendy.community.domain.post.dto.response;
 
 import friendy.community.domain.post.model.Post;
 
