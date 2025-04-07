@@ -6,15 +6,12 @@ import friendy.community.domain.member.service.MemberService;
 import friendy.community.domain.post.controller.code.PostExceptionCode;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
-import friendy.community.domain.post.dto.response.FindAllPostResponse;
-import friendy.community.domain.post.dto.response.FindPostResponse;
-import friendy.community.domain.post.dto.response.PostIdResponse;
+import friendy.community.domain.post.dto.response.*;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostQueryDSLRepository;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
-import friendy.community.global.security.FriendyUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -111,8 +108,25 @@ public class PostService {
         return post.getMember().getId().equals(memberId);
     }
 
-    public List<Post> getPostsByMemberId(Long memberId, Long lastPostId) {
-        return postQueryDSLRepository.findPostsByMemberId(memberId, lastPostId);
+    public FindMemberPostsResponse getPostsByMemberId(Long memberId, Long lastPostId) {
+        memberService.validateExists(memberId);
+        List<Post> posts = postQueryDSLRepository.findPostsByMemberId(memberId, lastPostId);
+
+        if (posts.isEmpty()) {
+            throw new NotFoundException(PostExceptionCode.POST_NOT_FOUND);
+        }
+
+        boolean hasNext = posts.size() > 12;
+        if (hasNext) {
+            posts.remove(posts.size() - 1);
+        }
+        Long newLastPostId = posts.get(posts.size() - 1).getId();
+
+        List<PostPreview> previews = posts.stream()
+            .map(PostPreview::from)
+            .collect(Collectors.toList());
+
+        return new FindMemberPostsResponse(previews, hasNext, newLastPostId);
     }
 
     private Post validatePostExistence(Long postId) {
