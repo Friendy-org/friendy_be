@@ -4,7 +4,6 @@ import friendy.community.domain.member.controller.code.MemberSuccessCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
-import friendy.community.domain.member.dto.response.PagedMemberPostsResponse;
 import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
@@ -46,15 +45,6 @@ public class MemberController implements SpringDocMemberController {
             MemberSuccessCode.GET_MEMBER_INFO_SUCCESS,
             memberService.getMemberInfo(userDetails.getMemberId(), memberId));
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/member/{memberId}/posts")
-    public ResponseEntity<FriendyResponse<PagedMemberPostsResponse>> getMemberPosts(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @PathVariable Long memberId
-    ) {
-        PagedMemberPostsResponse response = memberService.getPostsByMember(memberId, lastPostId);
-        return ResponseEntity.ok(FriendyResponse.of(MemberSuccessCode.GET_MEMBER_POSTS_SUCCESS, response));
     }
 }
 

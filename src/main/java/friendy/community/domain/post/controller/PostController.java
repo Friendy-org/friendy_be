@@ -4,6 +4,7 @@ import friendy.community.domain.post.controller.code.PostSuccessCode;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
+import friendy.community.domain.post.dto.response.FindMemberPostsResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.domain.post.service.PostService;
@@ -71,5 +72,17 @@ public class PostController implements SpringDocPostController {
         return ResponseEntity.ok(FriendyResponse.of(
             PostSuccessCode.GET_ALL_POSTS_SUCCESS,
             postService.getPostsByLastId(lastPostId, userDetails.getMemberId())));
+    }
+
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getPostsByMemberId(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long memberId,
+        @RequestParam(required = false) Long lastPostId
+    ) {
+        FindMemberPostsResponse response = postService.getPostsByMemberId(memberId, lastPostId);
+        return ResponseEntity.ok(
+            FriendyResponse.of(PostSuccessCode.GET_MEMBER_POSTS_SUCCESS, response)
+        );
     }
 }
