@@ -152,13 +152,11 @@ class MemberServiceTest {
     @DisplayName("회원 조회 요청이 성공하면 FindMemberResponse를 반환한다")
     void getMemberSuccessfullyReturnsFindMemberinfoResponse() {
         // Given
-        MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
         Long memberId = savedMember.getId();
 
         // When
-        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, memberId);
+        FindMemberResponse response = memberService.getMemberInfo(1L, memberId);
 
         // Then
         assertThat(response).isNotNull();
@@ -172,12 +170,10 @@ class MemberServiceTest {
     @DisplayName("존재하지 않는 회원을 조회하면 예외를 던진다")
     void throwsExceptionWhenMemberNotFound() {
         // Given
-        MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
         Long nonExistentMemberId = 999L;
 
         // When & Then
-        assertThatThrownBy(() -> memberService.getMemberInfo(httpServletRequest, nonExistentMemberId))
+        assertThatThrownBy(() -> memberService.getMemberInfo(1L, nonExistentMemberId))
             .isInstanceOf(NotFoundException.class)
             .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.USER_NOT_FOUND_EXCEPTION);
     }
@@ -186,12 +182,10 @@ class MemberServiceTest {
     @DisplayName("현재 로그인된 사용자와 조회하는 사용자가 같으면 isMe가 true를 반환한다")
     void getMemberInfoIdentifiesCurrentUserCorrectly() {
         // Given
-        MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", CORRECT_ACCESS_TOKEN);
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
 
         // When
-        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, savedMember.getId());
+        FindMemberResponse response = memberService.getMemberInfo(1L, savedMember.getId());
 
         // Then
         assertThat(response).isNotNull();
@@ -203,12 +197,10 @@ class MemberServiceTest {
     @DisplayName("현재 로그인된 사용자와 조회하는 사용자가 다르면 isMe가 false를 반환한다")
     void getMemberInfoIdentifiesDifferentUserCorrectly() {
         // Given
-        MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
-        httpServletRequest.addHeader("Authorization", OTHER_USER_TOKEN);
         Member savedMember = memberRepository.save(MemberFixture.memberFixture());
 
         // When
-        FindMemberResponse response = memberService.getMemberInfo(httpServletRequest, savedMember.getId());
+        FindMemberResponse response = memberService.getMemberInfo(999L, savedMember.getId());
 
         // Then
         assertThat(response).isNotNull();

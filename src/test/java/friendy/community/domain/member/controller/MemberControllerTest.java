@@ -10,8 +10,10 @@ import friendy.community.domain.member.service.MemberService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.config.WebConfig;
+import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.security.resolver.LoggedInUserArgumentResolver;
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,14 +25,17 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,6 +61,19 @@ class MemberControllerTest {
     private AuthService authService;
     @MockitoBean
     private MemberService memberService;
+
+    @BeforeEach
+    void setUp() {
+        FriendyUserDetails userDetails = new FriendyUserDetails(
+            1L,
+            "user@example.com",
+            "password123",
+            Collections.emptyList()
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     @Test
     @DisplayName("회원가입 요청이 성공적으로 처리되면 201 Created와 함께 응답을 반환한다")
@@ -257,7 +275,7 @@ class MemberControllerTest {
             true, 1L, "example@friendy.com", "bokSungKim", LocalDate.parse("2002-08-13")
         );
 
-        when(memberService.getMemberInfo(any(HttpServletRequest.class), eq(memberId)))
+        when(memberService.getMemberInfo(anyLong(), eq(memberId)))
             .thenReturn(response);
 
         // When & Then
