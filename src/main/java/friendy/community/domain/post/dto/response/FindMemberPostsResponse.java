@@ -1,8 +1,8 @@
-package friendy.community.domain.member.dto.response;
+package friendy.community.domain.post.dto.response;
 
 import java.util.List;
 
-public record PagedMemberPostsResponse(
+public record FindMemberPostsResponse(
     List<PostPreview> posts,
     boolean hasNext,
     Long lastPostId
