@@ -4,7 +4,10 @@ import friendy.community.domain.member.controller.code.MemberSuccessCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberQueryService;
+import friendy.community.domain.post.controller.code.PostSuccessCode;
+import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import jakarta.validation.Valid;
@@ -18,11 +21,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MemberController implements SpringDocMemberController {
 
-    private final MemberService memberService;
+    private final MemberCommandService memberCommandService;
+    private final MemberQueryService memberQueryService;
 
     @PostMapping("/signup")
     public ResponseEntity<FriendyResponse<Void>> signup(@Valid @RequestBody MemberSignUpRequest request) {
-        memberService.signup(request);
+        memberCommandService.signup(request);
         FriendyResponse<Void> response = FriendyResponse.of(MemberSuccessCode.SIGN_UP_SUCCESS);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -31,7 +35,7 @@ public class MemberController implements SpringDocMemberController {
     public ResponseEntity<FriendyResponse<Void>> changePassword(
         @Valid @RequestBody PasswordRequest passwordRequest
     ) {
-        memberService.changePassword(passwordRequest);
+        memberCommandService.changePassword(passwordRequest);
         return ResponseEntity.ok(FriendyResponse.of(MemberSuccessCode.CHANGE_PASSWORD_SUCCESS));
     }
 
@@ -40,11 +44,22 @@ public class MemberController implements SpringDocMemberController {
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @PathVariable Long memberId
     ) {
-        memberService.getMemberInfo(userDetails.getMemberId(), memberId);
         FriendyResponse<FindMemberResponse> response = FriendyResponse.of(
             MemberSuccessCode.GET_MEMBER_INFO_SUCCESS,
-            memberService.getMemberInfo(userDetails.getMemberId(), memberId));
+            memberQueryService.getMemberInfo(userDetails.getMemberId(), memberId));
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/member/{memberId}/posts")
+    public ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getMemberPosts(
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long memberId,
+        @RequestParam(required = false) Long lastPostId
+    ) {
+        FindMemberPostsResponse response = memberQueryService.getMemberPosts(memberId, lastPostId);
+        return ResponseEntity.ok(
+            FriendyResponse.of(PostSuccessCode.GET_MEMBER_POSTS_SUCCESS, response)
+        );
     }
 }
 

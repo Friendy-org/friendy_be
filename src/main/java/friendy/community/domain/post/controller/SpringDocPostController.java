@@ -3,7 +3,6 @@ package friendy.community.domain.post.controller;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.dto.request.PostUpdateRequest;
 import friendy.community.domain.post.dto.response.FindAllPostResponse;
-import friendy.community.domain.post.dto.response.FindMemberPostsResponse;
 import friendy.community.domain.post.dto.response.FindPostResponse;
 import friendy.community.domain.post.dto.response.PostIdResponse;
 import friendy.community.global.response.FriendyResponse;
@@ -102,21 +101,6 @@ public interface    SpringDocPostController {
     })
     ResponseEntity<FriendyResponse<FindAllPostResponse>> getAllPosts(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @RequestParam(required = false) Long lastPostId
-    );
-
-    @Operation(summary = "회원 게시글 목록 조회")
-    @ApiResponse(responseCode = "200", description = "회원 게시글 목록 조회 성공")
-    @ApiErrorResponse(
-        status = HttpStatus.NOT_FOUND,
-        instance = "/posts/{memberId}/posts",
-        errorCases = {
-            @ErrorCase(description = "존재하지 않는 회원", exampleMessage = "존재하지 않는 회원입니다.")
-        }
-    )
-    ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getPostsByMemberId(
-        @AuthenticationPrincipal FriendyUserDetails userDetails,
-        @PathVariable Long memberId,
         @RequestParam(required = false) Long lastPostId
     );
 }
