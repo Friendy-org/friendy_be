@@ -3,6 +3,7 @@ package friendy.community.domain.member.controller;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
+import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
 import friendy.community.global.swagger.error.ApiErrorResponse;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "회원 API", description = "회원 API")
 public interface SpringDocMemberController {
@@ -56,5 +58,20 @@ public interface SpringDocMemberController {
     ResponseEntity<FriendyResponse<FindMemberResponse>> getMemberInfo(
             @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long memberId
+    );
+
+    @Operation(summary = "회원 게시글 목록 조회")
+    @ApiResponse(responseCode = "200", description = "회원 게시글 목록 조회 성공")
+    @ApiErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        instance = "/member/{memberId}/posts",
+        errorCases = {
+            @ErrorCase(description = "존재하지 않는 회원", exampleMessage = "존재하지 않는 회원입니다.")
+        }
+    )
+    ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getMemberPosts (
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long memberId,
+        @RequestParam(required = false) Long lastPostId
     );
 }
