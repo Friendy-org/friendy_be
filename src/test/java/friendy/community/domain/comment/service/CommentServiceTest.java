@@ -13,11 +13,12 @@ import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberDomainService;
 import friendy.community.domain.post.dto.request.PostCreateRequest;
 import friendy.community.domain.post.fixture.PostFixture;
 import friendy.community.domain.post.model.Post;
-import friendy.community.domain.post.service.PostService;
+import friendy.community.domain.post.service.PostCommandService;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.persistence.EntityManager;
@@ -47,9 +48,11 @@ public class CommentServiceTest {
     @Autowired
     private ReplyRepository replyRepository;
     @Autowired
-    private MemberService memberService;
+    private MemberCommandService memberCommandService;
     @Autowired
-    private PostService postService;
+    private MemberDomainService memberDomainService;
+    @Autowired
+    private PostCommandService postCommandService;
     @Autowired
     private EntityManager entityManager;
 
@@ -60,12 +63,12 @@ public class CommentServiceTest {
         resetDataBase();
 
         member = MemberFixture.memberFixture();
-        Long memberId = memberService.signup(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
+        Long memberId = memberCommandService.signup(new MemberSignUpRequest(member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
 
-        member = memberService.findMemberById(memberId);
+        member = memberDomainService.getMemberById(memberId);
 
         Post post = PostFixture.postFixture();
-        postService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null,"창원시"), member.getId());
+        postCommandService.savePost(new PostCreateRequest(post.getContent(), List.of("프렌디", "개발", "스터디"), null,"창원시"), member.getId());
     }
 
     private void resetDataBase() {
@@ -178,7 +181,7 @@ public class CommentServiceTest {
         createComment();
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");
 
-        memberService.signup(new MemberSignUpRequest(
+        memberCommandService.signup(new MemberSignUpRequest(
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
         // When & Then
         assertThatThrownBy(() -> commentService.updateComment(commentUpdateRequest, 1L, 2L))
@@ -229,7 +232,7 @@ public class CommentServiceTest {
 
         Reply savedReply = replyRepository.findAll().getFirst();
 
-        memberService.signup(new MemberSignUpRequest(
+        memberCommandService.signup(new MemberSignUpRequest(
             "user@example.com", "홍길동", "password123!", LocalDate.parse("2002-08-13"), null));
 
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("new valid content");

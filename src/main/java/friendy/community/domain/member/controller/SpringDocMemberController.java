@@ -1,18 +1,25 @@
 package friendy.community.domain.member.controller;
 
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
+import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.global.response.FriendyResponse;
+import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "회원 API", description = "회원 API")
 public interface SpringDocMemberController {
@@ -47,14 +54,38 @@ public interface SpringDocMemberController {
     })
     ResponseEntity<FriendyResponse<Void>> changePassword(PasswordRequest passwordRequest);
 
+    @Operation(summary = "프로필 변경")
+    @ApiResponse(responseCode = "200", description = "프로필 변경 성공")
+    @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/member", errorCases = {
+        @ErrorCase(description = "로그인 상태가 아닙니다", exampleMessage = "로그인된 사용자만 접근 가능합니다.")
+    })
+    ResponseEntity<FriendyResponse<Void>> updateMember(
+        @LoggedInUser FriendyUserDetails userDetails,
+        @Valid @RequestBody MemberUpdateRequest request
+    );
+
     @Operation(summary = "프로필 조회")
     @ApiResponse(responseCode = "200", description = "프로필 조회 성공")
     @ApiErrorResponse(status = HttpStatus.NOT_FOUND, instance = "/member/{memberId}", errorCases = {
             @ErrorCase(description = "존재하지 않는 회원", exampleMessage = "존재하지 않는 회원입니다.")
     })
     ResponseEntity<FriendyResponse<FindMemberResponse>> getMemberInfo(
-            HttpServletRequest httpServletRequest,
+            @AuthenticationPrincipal FriendyUserDetails userDetails,
             @PathVariable Long memberId
     );
 
+    @Operation(summary = "회원 게시글 목록 조회")
+    @ApiResponse(responseCode = "200", description = "회원 게시글 목록 조회 성공")
+    @ApiErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        instance = "/member/{memberId}/posts",
+        errorCases = {
+            @ErrorCase(description = "존재하지 않는 회원", exampleMessage = "존재하지 않는 회원입니다.")
+        }
+    )
+    ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getMemberPosts (
+        @AuthenticationPrincipal FriendyUserDetails userDetails,
+        @PathVariable Long memberId,
+        @RequestParam(required = false) Long lastPostId
+    );
 }

@@ -19,7 +19,7 @@ public record PostUpdateRequest(
 
     @Schema(
         description = "게시글 이미지 목록",
-        example = "[\"https://friendybucket.s3.us-east-2.amazonaws.com/test/3a4abd13-a8b5-47b5-8a9d-28fb21b8929b.jpg\", \"https://friendybucket.s3.us-east-2.amazonaws.com/test/3a4abd13-a8b5-47b5-8a9d-28fb21b8929b.jpg\"]"
+        example = "[\"https://friendybucket.s3.us-east-2.amazonaws.com/test/3a4abd13-a8b5-47b5-8a9d-28fb21b8929b.jpg\", \"https://friendybucket.s3.us-east-2.amazonaws.com/test/f851b0ff-800d-4d1a-8c75-a65a6d462bde.jpg\"]"
     )
     List<String> imageUrls,
     

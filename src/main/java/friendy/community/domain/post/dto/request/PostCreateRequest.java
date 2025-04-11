@@ -18,7 +18,7 @@ public record PostCreateRequest(
 
         @Schema(
             description = "게시글 이미지 목록",
-            example = "[\"https://friendybucket.s3.us-east-2.amazonaws.com/test/d08f0a96-3386-413e-96c1-bc85cfdaa2fc.jpg\", \"https://friendybucket.s3.us-east-2.amazonaws.com/test/d08f0a96-3386-413e-96c1-bc85cfdaa2fc.jpg\"]"
+            example = "[\"https://friendybucket.s3.us-east-2.amazonaws.com/test/d08f0a96-3386-413e-96c1-bc85cfdaa2fc.jpg\", \"https://friendybucket.s3.us-east-2.amazonaws.com/test/e0e35379-efc5-4fd7-b897-f1f4399ddb83.jpg\"]"
         )
         @NotEmpty(message = "게시글이미지는 최소 1개 이상 등록해야 합니다.")
         List<String> imageUrls,

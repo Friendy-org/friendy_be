@@ -3,146 +3,143 @@ package friendy.community.domain.auth.service;
 import friendy.community.domain.auth.dto.request.LoginRequest;
 import friendy.community.domain.auth.dto.response.TokenResponse;
 import friendy.community.domain.auth.jwt.JwtTokenProvider;
-import friendy.community.domain.member.fixture.MemberFixture;
+import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberDomainService;
 import friendy.community.global.exception.domain.UnAuthorizedException;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static friendy.community.domain.auth.fixtures.TokenFixtures.CORRECT_REFRESH_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@Transactional
-@DirtiesContext
+@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Autowired
-    AuthService authService;
+    @Mock
+    private MemberRepository memberRepository;
 
-    @Autowired
-    MemberRepository memberRepository;
+    @Mock
+    private PasswordEncryptor passwordEncryptor;
 
-    @Autowired
-    JwtTokenProvider jwtTokenProvider;
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
 
-    @MockitoBean
-    private StringRedisTemplate redisTemplate;
+    @Mock
+    private MemberDomainService memberDomainService;
 
+    @InjectMocks
+    private AuthService authService;
 
     @Test
-    @DisplayName("로그인 성공 시 액세스 토큰과 리프레시 토큰이 생성된다.")
-    void loginSuccessfullyGeneratesTokens() {
-        // Redis Mock 셋업
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    @DisplayName("로그인 성공 시 토큰 반환")
+    void loginSuccess() {
+        // given
+        String email = "test@example.com";
+        String rawPassword = "password123";
+        String salt = "salt123";
+        String encryptedPassword = "encryptedPw";
+        Member mockMember = mock(Member.class);
+        LoginRequest request = new LoginRequest(email, rawPassword);
 
-        // Given
-        Member savedMember = memberRepository.save(MemberFixture.memberFixture());
-        LoginRequest loginRequest = new LoginRequest(savedMember.getEmail(), MemberFixture.getFixturePlainPassword());
+        when(memberDomainService.getMemberByEmail(email)).thenReturn(mockMember);
+        when(mockMember.getSalt()).thenReturn(salt);
+        when(passwordEncryptor.encrypt(rawPassword, salt)).thenReturn(encryptedPassword);
+        when(mockMember.matchPassword(encryptedPassword)).thenReturn(true);
+        when(mockMember.getId()).thenReturn(1L);
+        when(jwtTokenProvider.generateAccessToken(email)).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(email)).thenReturn("refresh-token");
 
-        // When
-        TokenResponse response = authService.login(loginRequest);
+        // when
+        TokenResponse result = authService.login(request);
 
-        // Then
-        assertThat(response.accessToken()).isNotNull();
-        assertThat(response.refreshToken()).isNotNull();
+        // then
+        assertThat(result.memberId()).isEqualTo(1L);
+        assertThat(result.accessToken()).isEqualTo("access-token");
+        assertThat(result.refreshToken()).isEqualTo("refresh-token");
     }
 
     @Test
-    @DisplayName("존재하지 않는 이메일로 로그인 시 예외를 던진다")
-    void throwsExceptionWhenEmailNotFound() {
-        // Given
-        LoginRequest request = new LoginRequest("nonexistent@example.com", MemberFixture.getFixturePlainPassword());
+    @DisplayName("비밀번호 틀릴 경우 예외 발생")
+    void loginWrongPasswordThrowsException() {
+        // given
+        String email = "test@example.com";
+        String rawPassword = "wrongPw";
+        String salt = "salt123";
+        String encryptedPassword = "wrongEncryptedPw";
+        Member mockMember = mock(Member.class);
 
-        // When & Then
-        assertThatThrownBy(() -> authService.login(request))
+        when(memberDomainService.getMemberByEmail(email)).thenReturn(mockMember);
+        when(mockMember.getSalt()).thenReturn(salt);
+        when(passwordEncryptor.encrypt(rawPassword, salt)).thenReturn(encryptedPassword);
+        when(mockMember.matchPassword(encryptedPassword)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> authService.login(new LoginRequest(email, rawPassword)))
             .isInstanceOf(UnAuthorizedException.class);
     }
 
     @Test
-    @DisplayName("비밀번호가 일치하지 않으면 예외를 던진다")
-    void throwsExceptionWhenPasswordDoesNotMatch() {
-        // Given
-        Member savedMember = memberRepository.save(MemberFixture.memberFixture());
-        LoginRequest loginRequest = new LoginRequest(savedMember.getEmail(), "wrongPassword");
+    @DisplayName("로그아웃 시 refresh token 삭제됨")
+    void logoutSuccess() {
+        // given
+        String token = "access-token";
+        when(jwtTokenProvider.extractEmailFromAccessToken(token)).thenReturn("user@example.com");
 
-        // When & Then
-        assertThatThrownBy(() -> authService.login(loginRequest))
-            .isInstanceOf(UnAuthorizedException.class);
+        // when
+        authService.logout(token);
+
+        // then
+        verify(jwtTokenProvider).deleteRefreshToken("user@example.com");
     }
 
     @Test
-    @DisplayName("로그아웃에 성공하면 Redis에서 리프레시 토큰이 삭제된다.")
-    void logoutSuccessfullyDeleteRefreshTokenInRedis() {
-        // Redis Mock 셋업
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    @DisplayName("refresh token으로 토큰 재발급")
+    void reissueTokenSuccess() {
+        // given
+        String refreshToken = "refresh-token";
+        String email = "user@example.com";
+        Member member = mock(Member.class);
 
-        // Given
-        Member savedMember = memberRepository.save(MemberFixture.memberFixture());
-        final String memberEmail = savedMember.getEmail();
-        final String accessToken = jwtTokenProvider.generateAccessToken(memberEmail);
+        when(jwtTokenProvider.extractEmailFromRefreshToken(refreshToken)).thenReturn(email);
+        when(memberDomainService.getMemberByEmail(email)).thenReturn(member);
+        when(member.getEmail()).thenReturn(email);
+        when(member.getId()).thenReturn(10L);
+        when(jwtTokenProvider.generateAccessToken(email)).thenReturn("new-access");
+        when(jwtTokenProvider.generateRefreshToken(email)).thenReturn("new-refresh");
 
-        when(redisTemplate.hasKey(memberEmail)).thenReturn(true);
-
-        // When
-        authService.logout(accessToken);
-
-        // Then
-        verify(redisTemplate, times(1)).delete(memberEmail);
-    }
-
-
-    @Test
-    @DisplayName("토큰 재발급 성공 시 새로운 액세스 토큰과 리프레시 토큰이 반환된다.")
-    void reissueTokenSuccessfullyReturnsNewTokens() {
-        // Given
-        Member savedMember = memberRepository.save(MemberFixture.memberFixture());
-        String refreshToken = CORRECT_REFRESH_TOKEN;
-
-        // Redis Mock 셋업
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.hasKey(savedMember.getEmail())).thenReturn(true);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(redisTemplate.opsForValue().get(savedMember.getEmail())).thenReturn(refreshToken);
-
-        // When
+        // when
         TokenResponse response = authService.reissueToken(refreshToken);
 
-        // Then
-        assertThat(response.accessToken()).isNotNull();
-        assertThat(response.refreshToken()).isNotNull();
+        // then
+        assertThat(response.accessToken()).isEqualTo("new-access");
+        assertThat(response.refreshToken()).isEqualTo("new-refresh");
+        assertThat(response.memberId()).isEqualTo(10L);
     }
 
     @Test
-    @DisplayName("유효한 액세스 토큰으로 요청 시 성공적으로 회원 정보가 데이터베이스에서 삭제된다.")
-    void requestWithValidTokensWithdrawalSuccessfully() {
-        // Redis Mock 셋업
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    @DisplayName("회원 탈퇴 시 refresh token 삭제 및 유저 삭제")
+    void withdrawalSuccess() {
+        // given
+        String token = "access-token";
+        String email = "user@example.com";
+        Member member = mock(Member.class);
 
-        // Given
-        final Member savedMember = memberRepository.save(MemberFixture.memberFixture());
-        final String memberEmail = savedMember.getEmail();
-        final String validAccessToken = jwtTokenProvider.generateAccessToken(memberEmail);
+        when(jwtTokenProvider.extractEmailFromAccessToken(token)).thenReturn(email);
+        when(memberDomainService.getMemberByEmail(email)).thenReturn(member);
 
-        when(redisTemplate.hasKey(memberEmail)).thenReturn(true);
+        // when
+        authService.withdrawal(token);
 
-        // When
-        authService.withdrawal(validAccessToken);
-
-        // Then
-        assertThat(memberRepository.findByEmail(memberEmail)).isEmpty();
+        // then
+        verify(jwtTokenProvider).deleteRefreshToken(email);
+        verify(memberRepository).delete(member);
     }
 }

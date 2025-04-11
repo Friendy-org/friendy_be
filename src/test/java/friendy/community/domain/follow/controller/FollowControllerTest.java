@@ -2,7 +2,8 @@ package friendy.community.domain.follow.controller;
 
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.follow.dto.response.FollowListResponse;
-import friendy.community.domain.follow.service.FollowService;
+import friendy.community.domain.follow.service.FollowCommandService;
+import friendy.community.domain.follow.service.FollowQueryService;
 import friendy.community.global.config.MockSecurityConfig;
 import friendy.community.global.config.SecurityConfig;
 import friendy.community.global.config.WebConfig;
@@ -46,7 +47,10 @@ class FollowControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private FollowService followService;
+    private FollowCommandService followCommandService;
+
+    @MockitoBean
+    private FollowQueryService followQueryService;
 
     @BeforeEach
     void setUp() {
@@ -64,8 +68,10 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로우 API 성공")
     void followApiSuccess() throws Exception {
-        doNothing().when(followService).follow(any(), any());
+        // given
+        doNothing().when(followCommandService).follow(any(), any());
 
+        // when & then
         mockMvc.perform(post("/follow/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk());
@@ -74,8 +80,10 @@ class FollowControllerTest {
     @Test
     @DisplayName("언팔로우 API 성공")
     void unfollowSuccess() throws Exception {
-        doNothing().when(followService).unfollow(any(), any());
+        // given
+        doNothing().when(followCommandService).unfollow(any(), any());
 
+        // when & then
         mockMvc.perform(delete("/follow/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk());
@@ -84,11 +92,12 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로잉 목록 조회 API 성공")
     void getFollowingMembersSuccess() throws Exception {
+        // given
         FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false, null);
-
-        when(followService.getFollowingMembers(any(), any()))
+        when(followQueryService.getFollowingList(any(), any()))
             .thenReturn(mockResponse);
 
+        // when & then
         mockMvc.perform(get("/follow/following/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk())
@@ -98,11 +107,12 @@ class FollowControllerTest {
     @Test
     @DisplayName("팔로워 목록 조회 API 성공")
     void getFollowerMembersSuccess() throws Exception {
+        // given
         FollowListResponse mockResponse = new FollowListResponse(Collections.emptyList(), false, null);
-
-        when(followService.getFollowerMembers(any(), any()))
+        when(followQueryService.getFollowerList(any(), any()))
             .thenReturn(mockResponse);
 
+        // when & then
         mockMvc.perform(get("/follow/follower/1")
                 .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk())

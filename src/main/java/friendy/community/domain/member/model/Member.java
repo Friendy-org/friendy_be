@@ -45,6 +45,15 @@ public class Member extends BaseEntity {
         this.memberImage = memberImage;
     }
 
+    public void updateMember(String nickname, LocalDate birthDate) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+    }
+
     public Member(final MemberSignUpRequest request, final String encryptedPassword, final String salt) {
         this.email = request.email();
         this.nickname = request.nickname();

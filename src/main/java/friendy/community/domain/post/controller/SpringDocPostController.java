@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "게시글 API", description = "게시글 생성 API")
-public interface SpringDocPostController {
+public interface    SpringDocPostController {
 
     @Operation(summary = "게시글 생성", description = "새 게시글을 생성합니다.")
     @ApiResponse(responseCode = "201", description = "게시글 생성 성공")
@@ -103,5 +103,4 @@ public interface SpringDocPostController {
         @AuthenticationPrincipal FriendyUserDetails userDetails,
         @RequestParam(required = false) Long lastPostId
     );
-
 }

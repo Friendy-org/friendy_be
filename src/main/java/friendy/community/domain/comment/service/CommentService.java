@@ -13,7 +13,8 @@ import friendy.community.domain.comment.repository.CommentRepository;
 import friendy.community.domain.comment.repository.ReplyQueryDSLRepository;
 import friendy.community.domain.comment.repository.ReplyRepository;
 import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberDomainService;
 import friendy.community.domain.post.model.Post;
 import friendy.community.domain.post.repository.PostRepository;
 import friendy.community.global.exception.domain.NotFoundException;
@@ -32,12 +33,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
     private final ReplyQueryDSLRepository replyQueryDSLRepository;
-    private final MemberService memberService;
+    private final MemberCommandService memberCommandService;
     private final CommentQueryDSLRepository commentQueryDSLRepository;
     private final PostRepository postRepository;
+    private final MemberDomainService memberDomainService;
 
     public void saveComment(final CommentCreateRequest commentCreateRequest, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Post post = getPostByPostId(commentCreateRequest.postId());
         final Comment comment = Comment.of(commentCreateRequest, member, post);
 
@@ -47,7 +49,7 @@ public class CommentService {
     }
 
     public void saveReply(final ReplyCreateRequest replyCreateRequest, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Post post = getPostByPostId(replyCreateRequest.postId());
         final Comment parentComment = getCommentByCommentId(replyCreateRequest.commentId());
         final Reply reply = Reply.of(replyCreateRequest, member, post, parentComment);
@@ -57,7 +59,7 @@ public class CommentService {
     }
 
     public void updateComment(final CommentUpdateRequest commentUpdateRequest, Long id, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Comment comment = getCommentByCommentId(id);
         validateAuthor(comment, member);
 
@@ -66,7 +68,7 @@ public class CommentService {
     }
 
     public void updateReply(final CommentUpdateRequest commentUpdateRequest, Long id, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Reply reply = getReplyByReplyId(id);
         validateAuthor(reply, member);
 
@@ -75,7 +77,7 @@ public class CommentService {
     }
 
     public void deleteComment(final Long commentId, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Comment comment = getCommentByCommentId(commentId);
         validateAuthor(comment, member);
 
@@ -89,7 +91,7 @@ public class CommentService {
     }
 
     public void deleteReply(final Long replyId, final Long memberId) {
-        final Member member = memberService.findMemberById(memberId);
+        final Member member = memberDomainService.getMemberById(memberId);
         final Reply reply = getReplyByReplyId(replyId);
         validateAuthor(reply, member);
 

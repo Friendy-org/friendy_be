@@ -5,7 +5,7 @@ import friendy.community.domain.member.controller.code.MemberExceptionCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
 import friendy.community.domain.member.fixture.MemberFixture;
 import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
@@ -40,7 +40,7 @@ class JwtTokenFilterTest {
     @Autowired
     JwtTokenFilter jwtTokenFilter;
     @Autowired
-    MemberService memberService;
+    MemberCommandService memberCommandService;
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
     @MockitoBean
@@ -62,7 +62,7 @@ class JwtTokenFilterTest {
 
         Member member = MemberFixture.memberFixture();
 
-        memberService.signup(new MemberSignUpRequest(
+        memberCommandService.signup(new MemberSignUpRequest(
             member.getEmail(), member.getNickname(), member.getPassword(), member.getBirthDate(), null));
     }
 
@@ -118,7 +118,7 @@ class JwtTokenFilterTest {
         // When & Then
         assertThatThrownBy(() -> jwtTokenFilter.setAuthentication(CORRECT_ACCESS_TOKEN))
             .isInstanceOf(NotFoundException.class)
-            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.EMAIL_NOT_FOUND_EXCEPTION);
+            .hasFieldOrPropertyWithValue("exceptionType", MemberExceptionCode.USER_NOT_FOUND_EXCEPTION);
     }
 
     @Test
