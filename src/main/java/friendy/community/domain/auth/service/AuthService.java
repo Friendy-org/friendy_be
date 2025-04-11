@@ -7,7 +7,8 @@ import friendy.community.domain.auth.jwt.JwtTokenProvider;
 import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.model.Member;
 import friendy.community.domain.member.repository.MemberRepository;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberDomainService;
 import friendy.community.global.exception.domain.NotFoundException;
 import friendy.community.global.exception.domain.UnAuthorizedException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncryptor passwordEncryptor;
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberService memberService;
+    private final MemberDomainService memberDomainService;
 
     public TokenResponse login(final LoginRequest request) {
         final Member member = getVerifiedMember(request.email(), request.password());
@@ -40,7 +41,7 @@ public class AuthService {
 
     public TokenResponse reissueToken(final String refreshToken) {
         final String extractedEmail = jwtTokenProvider.extractEmailFromRefreshToken(refreshToken);
-        final Member member = memberService.findMemberByEmail(extractedEmail);
+        final Member member = memberDomainService.getMemberByEmail(extractedEmail);
         final String newAccessToken = jwtTokenProvider.generateAccessToken(member.getEmail());
         final String newRefreshToken = jwtTokenProvider.generateRefreshToken(member.getEmail());
 
@@ -51,14 +52,14 @@ public class AuthService {
         logout(accessToken);
 
         final String email = jwtTokenProvider.extractEmailFromAccessToken(accessToken);
-        final Member member = memberService.findMemberByEmail(email);
+        final Member member = memberDomainService.getMemberByEmail(email);
 
         memberRepository.delete(member);
     }
 
     private Member getVerifiedMember(String email, String password) {
         try {
-            Member member = memberService.findMemberByEmail(email);
+            Member member = memberDomainService.getMemberByEmail(email);
             validateCorrectPassword(member, password);
             return member;
         } catch (NotFoundException e) {
