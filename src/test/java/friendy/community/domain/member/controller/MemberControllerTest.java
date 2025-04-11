@@ -3,6 +3,7 @@ package friendy.community.domain.member.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import friendy.community.domain.auth.jwt.JwtTokenFilter;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
@@ -38,6 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -141,7 +143,6 @@ class MemberControllerTest {
     void getMemberPostsSuccess() throws Exception {
         // given
         Long memberId = 2L;
-        Long lastPostId = null;
 
         List<PostPreview> postPreviews = List.of(
             new PostPreview(100L, "https://example.com/image1.jpg"),
@@ -167,4 +168,27 @@ class MemberControllerTest {
             .andExpect(jsonPath("$.result.hasNext").value(true))
             .andExpect(jsonPath("$.result.lastPostId").value(99L));
     }
+
+    @DisplayName("프로필 수정 성공 시 200 OK를 반환한다")
+    @Test
+    void shouldUpdateMemberProfileSuccessfully() throws Exception {
+        // given
+        MemberUpdateRequest request = new MemberUpdateRequest(
+            "updatedNickname",
+            LocalDate.of(2000, 1, 1),
+            "https://cdn.friendy.com/profile/updated.jpg"
+        );
+
+        doNothing().when(memberCommandService).updateMember(any(MemberUpdateRequest.class), anyLong());
+
+        // when & then
+        mockMvc.perform(post("/member")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .with(SecurityMockMvcRequestPostProcessors.authentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
+                )))
+            .andExpect(status().isOk());
+    }
+
 }
