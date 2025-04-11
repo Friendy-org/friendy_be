@@ -1,6 +1,7 @@
 package friendy.community.domain.member.service;
 
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.encryption.SaltGenerator;
@@ -37,6 +38,19 @@ public class MemberCommandService {
         return member.getId();
     }
 
+    public void updateMember(final MemberUpdateRequest request, final Long memberId) {
+        Member member = memberDomainService.getMemberById(memberId);
+
+        member.updateMember(request.nickname(),request.birthDate());
+
+        if (request.imageUrl() != null) {
+            s3service.deleteFromS3(member.getMemberImage().getS3Key());
+            MemberImage newImage = saveProfileImage(request.imageUrl());
+            member.updateMemberImage(newImage);
+        }
+        memberRepository.save(member);
+    }
+
     public void changePassword(PasswordRequest request) {
         Member member =  memberDomainService.getMemberByEmail(request.email());
         final String salt = saltGenerator.generate();
@@ -52,4 +66,5 @@ public class MemberCommandService {
         String fileType = s3service.getContentTypeFromS3(s3Key);
         return MemberImage.of(movedUrl, s3Key, fileType);
     }
+
 }

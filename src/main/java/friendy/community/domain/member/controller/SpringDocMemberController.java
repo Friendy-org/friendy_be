@@ -1,20 +1,24 @@
 package friendy.community.domain.member.controller;
 
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
 import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import friendy.community.global.swagger.error.ApiErrorResponse;
 import friendy.community.global.swagger.error.ErrorCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "회원 API", description = "회원 API")
@@ -49,6 +53,16 @@ public interface SpringDocMemberController {
             @ErrorCase(description = "이메일 불일치", exampleMessage = "해당 이메일의 회원이 존재하지 않습니다.")
     })
     ResponseEntity<FriendyResponse<Void>> changePassword(PasswordRequest passwordRequest);
+
+    @Operation(summary = "프로필 변경")
+    @ApiResponse(responseCode = "200", description = "프로필 변경 성공")
+    @ApiErrorResponse(status = HttpStatus.UNAUTHORIZED, instance = "/member", errorCases = {
+        @ErrorCase(description = "로그인 상태가 아닙니다", exampleMessage = "로그인된 사용자만 접근 가능합니다.")
+    })
+    ResponseEntity<FriendyResponse<Void>> updateMember(
+        @LoggedInUser FriendyUserDetails userDetails,
+        @Valid @RequestBody MemberUpdateRequest request
+    );
 
     @Operation(summary = "프로필 조회")
     @ApiResponse(responseCode = "200", description = "프로필 조회 성공")
