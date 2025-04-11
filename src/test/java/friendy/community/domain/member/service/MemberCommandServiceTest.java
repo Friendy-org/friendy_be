@@ -1,5 +1,6 @@
 package friendy.community.domain.member.service;
 
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.encryption.PasswordEncryptor;
 import friendy.community.domain.member.encryption.SaltGenerator;
@@ -17,9 +18,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MemberCommandServiceTest {
@@ -89,4 +92,28 @@ class MemberCommandServiceTest {
         assertThat(result.getS3Key()).isEqualTo(s3Key);
         assertThat(result.getFileType()).isEqualTo(fileType);
     }
+
+    @Test
+    @DisplayName("프로필을 성공적으로 수정한다")
+    void shouldUpdateProfile() {
+        // given
+        when(memberDomainService.getMemberById(1L)).thenReturn(member);
+        member.updateMemberImage(new MemberImage("origin", "origin-key", "jpg"));
+        doNothing().when(s3Service).deleteFromS3(anyString());
+
+        when(s3Service.moveS3Object(anyString(), eq("profile"))).thenReturn("https://moved.url/image.jpg");
+        when(s3Service.extractFilePath(anyString())).thenReturn("profile/image.jpg");
+        when(s3Service.getContentTypeFromS3(anyString())).thenReturn("image/jpeg");
+
+        MemberUpdateRequest request = new MemberUpdateRequest("newnickname", LocalDate.of(2000, 1, 1), "new-image.png");
+
+        // when
+        memberCommandService.updateMember(request, 1L);
+
+        // then
+        assertThat(member.getNickname()).isEqualTo("newnickname");
+        assertThat(member.getMemberImage().getImageUrl()).isEqualTo("https://moved.url/image.jpg");
+    }
+
+
 }
