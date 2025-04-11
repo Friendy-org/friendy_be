@@ -1,7 +1,8 @@
 package friendy.community.global.security;
 
 import friendy.community.domain.member.model.Member;
-import friendy.community.domain.member.service.MemberService;
+import friendy.community.domain.member.service.MemberCommandService;
+import friendy.community.domain.member.service.MemberDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -12,11 +13,11 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class FriendyUserDetailsService implements UserDetailsService {
 
-    private final MemberService memberService;
+    private final MemberDomainService memberDomainService;
 
     @Override
     public FriendyUserDetails loadUserByUsername(String email) {
-        Member member = memberService.findMemberByEmail(email);
+        Member member = memberDomainService.getMemberByEmail(email);
 
         return new FriendyUserDetails(
             member.getId(),  // memberId
