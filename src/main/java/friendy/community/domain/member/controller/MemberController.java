@@ -2,6 +2,7 @@ package friendy.community.domain.member.controller;
 
 import friendy.community.domain.member.controller.code.MemberSuccessCode;
 import friendy.community.domain.member.dto.request.MemberSignUpRequest;
+import friendy.community.domain.member.dto.request.MemberUpdateRequest;
 import friendy.community.domain.member.dto.request.PasswordRequest;
 import friendy.community.domain.member.dto.response.FindMemberResponse;
 import friendy.community.domain.member.service.MemberCommandService;
@@ -10,6 +11,7 @@ import friendy.community.domain.post.controller.code.PostSuccessCode;
 import friendy.community.domain.member.dto.response.FindMemberPostsResponse;
 import friendy.community.global.response.FriendyResponse;
 import friendy.community.global.security.FriendyUserDetails;
+import friendy.community.global.security.annotation.LoggedInUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -50,6 +52,17 @@ public class MemberController implements SpringDocMemberController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/member")
+    public ResponseEntity<FriendyResponse<Void>> updateMember(
+        @LoggedInUser FriendyUserDetails userDetails,
+        @Valid @RequestBody MemberUpdateRequest request
+    ) {
+        memberCommandService.updateMember(request, userDetails.getMemberId());
+        return ResponseEntity.ok(
+            FriendyResponse.of(MemberSuccessCode.UPDATE_PROFILE_SUCCESS)
+        );
+    }
+
     @GetMapping("/member/{memberId}/posts")
     public ResponseEntity<FriendyResponse<FindMemberPostsResponse>> getMemberPosts(
         @AuthenticationPrincipal FriendyUserDetails userDetails,
@@ -58,7 +71,7 @@ public class MemberController implements SpringDocMemberController {
     ) {
         FindMemberPostsResponse response = memberQueryService.getMemberPosts(memberId, lastPostId);
         return ResponseEntity.ok(
-            FriendyResponse.of(PostSuccessCode.GET_MEMBER_POSTS_SUCCESS, response)
+            FriendyResponse.of(MemberSuccessCode.GET_MEMBER_POSTS_SUCCESS, response)
         );
     }
 }
